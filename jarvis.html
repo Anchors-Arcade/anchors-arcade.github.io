@@ -1,0 +1,4708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>
+/* Minimal mode (set in the Julmust Arcade settings): flat, animation-free look. Applied before first paint;
+   the web fonts are only requested when it is off. The portal pings us when the toggle changes. */
+(function(){
+  var d=document.documentElement, on=false;
+  function isOn(v){ if(typeof v==="string"){ try{ v=JSON.parse(v); }catch(e){} } return v===true||v===1||v==="true"||v==="1"; }
+  try{ on=isOn(localStorage.getItem("gn_minimal")); }catch(e){}
+  if(on) d.classList.add("minimal");
+  function fonts(){
+    if(window.gnFontsOn) return; window.gnFontsOn=1;
+    try{
+      var h=document.head, u=["https://fonts.googleapis.com","https://fonts.gstatic.com"], l, i;
+      for(i=0;i<2;i++){ l=document.createElement("link"); l.rel="preconnect"; l.href=u[i]; if(i) l.setAttribute("crossorigin",""); h.appendChild(l); }
+      l=document.createElement("link"); l.rel="stylesheet"; l.href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&family=Fredoka:wght@500;600;700&display=swap"; h.appendChild(l);
+    }catch(e){}
+  }
+  if(!on) fonts();
+  window.addEventListener("message",function(e){
+    try{
+      if(e.origin!==location.origin||!e.data||e.data.type!=="gn_minimal") return;
+      var m=!!e.data.on;
+      d.classList.toggle("minimal",m);
+      if(!m) fonts();
+    }catch(x){}
+  });
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mustiga Mannen</title>
+<meta name="theme-color" content="#0a0507">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet"></noscript>
+<style>
+  /* Theme variables are injected at runtime from the THEMES table in the
+     script below, so built-in themes and user-made themes share one path. */
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100dvh;
+    overflow: hidden;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input, textarea, select { font-family: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .icon { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .icon-sm { width: 14px; height: 14px; }
+
+  /* ========================= Sidebar ========================= */
+
+  #sidebar {
+    width: 274px;
+    flex-shrink: 0;
+    background: var(--side);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.22s cubic-bezier(.4,0,.2,1);
+    z-index: 20;
+  }
+  body.collapsed #sidebar { margin-left: -274px; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 16px 16px 12px;
+  }
+
+  .brand .mark {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--on-accent);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .brand .name {
+    font-weight: 600;
+    font-size: 14.5px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .side-pad { padding: 0 12px; }
+
+  #newChatBtn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--on-accent);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: filter .15s, transform .06s;
+  }
+  #newChatBtn:hover { filter: brightness(1.08); }
+  #newChatBtn:active { transform: scale(.985); }
+
+  .search-wrap {
+    position: relative;
+    margin: 10px 12px 6px;
+  }
+  .search-wrap > .icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+  #searchInput {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid transparent;
+    color: var(--text);
+    border-radius: 9px;
+    padding: 8px 28px 8px 32px;
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color .15s, background .15s;
+  }
+  #searchInput::placeholder { color: var(--text-dim); }
+  #searchInput:focus { border-color: var(--accent); background: var(--bg); }
+  #searchClear {
+    position: absolute;
+    right: 6px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    line-height: 0;
+  }
+  #searchClear:hover { color: var(--text); }
+  .search-wrap.has-text #searchClear { display: block; }
+
+  #chatList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 12px;
+    scrollbar-width: thin;
+  }
+
+  .group-label {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    padding: 14px 8px 5px;
+    font-weight: 500;
+  }
+
+  .chat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 8px 8px 10px;
+    border-radius: 9px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: background .12s, color .12s;
+    position: relative;
+  }
+  .chat-item:hover { background: var(--hover); color: var(--text); }
+  .chat-item.active { background: var(--hover); color: var(--text); }
+  .chat-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 9px; bottom: 9px;
+    width: 2.5px;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+
+  .chat-item .body { flex: 1; min-width: 0; }
+
+  .chat-item .name {
+    font-size: 13.8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.35;
+  }
+
+  .chat-item .meta {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-item .snippet {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-item mark {
+    background: var(--accent-soft);
+    color: var(--text);
+    border-radius: 3px;
+    padding: 0 1px;
+  }
+
+  .chat-actions { display: flex; gap: 1px; opacity: 0; flex-shrink: 0; }
+  .chat-item:hover .chat-actions, .chat-item:focus-within .chat-actions { opacity: 1; }
+
+  .mini-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    line-height: 0;
+    transition: color .12s, background .12s;
+  }
+  .mini-btn:hover { color: var(--text); background: var(--surface); }
+  .mini-btn.danger:hover { color: var(--danger); }
+
+  .rename-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 13.5px;
+    outline: none;
+  }
+
+  .side-empty {
+    padding: 18px 12px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  .side-foot {
+    border-top: 1px solid var(--border);
+    padding: 8px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .foot-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    border-radius: 9px;
+    padding: 8px 9px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    transition: background .12s, color .12s;
+  }
+  .foot-btn:hover { background: var(--hover); color: var(--text); }
+  .foot-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .swatch {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(128,128,128,.35);
+  }
+
+  /* ========================= Main ========================= */
+
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+  }
+
+  header {
+    height: 56px;
+    flex-shrink: 0;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .ghost-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 7px;
+    cursor: pointer;
+    line-height: 0;
+    transition: color .12s, border-color .12s, background .12s;
+  }
+  .ghost-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+  #chatTitle {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 5px 8px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    cursor: text;
+  }
+  #chatTitle:hover { background: var(--hover); }
+  #chatTitle[contenteditable="true"] {
+    background: var(--bg);
+    border-color: var(--accent);
+    outline: none;
+    overflow: auto;
+  }
+
+  .menu-wrap { position: relative; }
+
+  .dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 5px;
+    min-width: 186px;
+    box-shadow: 0 14px 34px var(--shadow);
+    z-index: 40;
+    display: none;
+  }
+  .dropdown.open { display: block; }
+
+  .dropdown button {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text);
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 7px;
+    font-size: 13.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .dropdown button:hover { background: var(--hover); }
+  .dropdown button.danger { color: var(--danger); }
+  .dropdown hr { border: none; border-top: 1px solid var(--border); margin: 5px 2px; }
+
+  /* ========================= Messages ========================= */
+
+  #chatWindow {
+    flex: 1;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding: 28px 24px 12px;
+  }
+
+  .thread {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .turn { display: flex; flex-direction: column; }
+
+  /* user turn: compact card, right aligned */
+  .turn.user { align-items: flex-end; }
+
+  .turn.user .content {
+    background: var(--user-bubble);
+    border-radius: 14px 14px 4px 14px;
+    padding: 11px 15px;
+    max-width: 82%;
+    white-space: pre-wrap;
+    line-height: 1.55;
+    word-wrap: break-word;
+  }
+
+  /* ai turn: full-width prose with an accent spine */
+  .turn.ai .content {
+    border-left: 2px solid var(--accent-soft);
+    padding: 1px 0 1px 18px;
+    line-height: 1.68;
+    word-wrap: break-word;
+  }
+
+  .turn.error .content {
+    border-left-color: var(--danger);
+    color: var(--danger);
+    white-space: pre-wrap;
+  }
+
+  .who {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .turn.ai .who { padding-left: 18px; }
+  .turn.user .who { padding-right: 3px; }
+
+  .time {
+    font-weight: 400;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .turn:hover .time { opacity: .75; }
+  body.hide-time .time { display: none; }
+
+  .actions {
+    display: flex;
+    gap: 2px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .turn.ai .actions { padding-left: 18px; }
+  .turn:hover .actions, .turn:focus-within .actions { opacity: 1; }
+
+  .act {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    padding: 5px 8px;
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color .12s, background .12s;
+  }
+  .act:hover { color: var(--text); background: var(--hover); }
+
+  .content p { margin: 0 0 12px; }
+  .content p:last-child { margin-bottom: 0; }
+  .content ul, .content ol { margin: 10px 0; padding-left: 22px; }
+  .content li { margin: 4px 0; }
+  .content h1, .content h2, .content h3 { margin: 18px 0 8px; line-height: 1.3; letter-spacing: -0.015em; font-weight: 600; }
+  .content h1 { font-size: 1.32em; }
+  .content h2 { font-size: 1.18em; }
+  .content h3 { font-size: 1.06em; }
+  .content h1:first-child, .content h2:first-child, .content h3:first-child { margin-top: 0; }
+  .content a { color: var(--accent); text-underline-offset: 2px; }
+  .content blockquote {
+    margin: 12px 0;
+    padding: 2px 0 2px 14px;
+    border-left: 2px solid var(--border);
+    color: var(--text-dim);
+  }
+  .content hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+  .content table { border-collapse: collapse; margin: 12px 0; font-size: .94em; display: block; overflow-x: auto; }
+  .content th, .content td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+  .content th { background: var(--surface); font-weight: 600; }
+
+  .content code {
+    font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    border-radius: 5px;
+    padding: 1.5px 5px;
+    font-size: .86em;
+  }
+
+  .code-block {
+    position: relative;
+    margin: 14px 0;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--code-bg);
+    overflow: hidden;
+  }
+  .code-block pre { margin: 0; padding: 13px 15px; overflow-x: auto; }
+  .code-block code { background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+
+  .copy-code {
+    position: absolute;
+    top: 7px; right: 7px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 7px;
+    padding: 4px 8px;
+    font-size: 11.5px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, color .12s;
+  }
+  .code-block:hover .copy-code { opacity: 1; }
+  .copy-code:hover { color: var(--text); }
+
+  .caret {
+    display: inline-block;
+    width: 7px; height: 15px;
+    background: var(--accent);
+    border-radius: 1.5px;
+    vertical-align: -2px;
+    margin-left: 2px;
+    animation: pulse 1s steps(2) infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .dots { display: inline-flex; gap: 4px; align-items: center; height: 22px; }
+  .dots i {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--text-dim);
+    animation: bob 1.2s infinite ease-in-out;
+  }
+  .dots i:nth-child(2) { animation-delay: .16s; }
+  .dots i:nth-child(3) { animation-delay: .32s; }
+  @keyframes bob { 0%,70%,100% { opacity: .3; transform: translateY(0);} 35% { opacity: 1; transform: translateY(-3px);} }
+
+  /* inline edit */
+  .edit-box {
+    width: min(660px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .edit-box textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 15px;
+    line-height: 1.55;
+    resize: none;
+    outline: none;
+  }
+  .edit-row { display: flex; gap: 8px; }
+
+  .btn-sm {
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+  }
+  .btn-sm:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn-sm.primary {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .btn-sm.primary:hover { filter: brightness(1.08); color: var(--on-accent); }
+
+  /* empty state */
+  .welcome { max-width: 560px; margin: 8vh auto 0; }
+  .welcome h2 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    margin: 0 0 10px;
+    line-height: 1.15;
+  }
+  .welcome p { color: var(--text-dim); margin: 0 0 24px; line-height: 1.6; max-width: 46ch; }
+  .starters { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .starter {
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    cursor: pointer;
+    transition: border-color .14s, background .14s;
+  }
+  .starter:hover { border-color: var(--accent); background: var(--hover); }
+
+  .starters.swapping .starter { opacity: 0; transform: translateY(3px); }
+  .starters .starter { opacity: 1; transform: none; transition: border-color .14s, background .14s, opacity .32s, transform .32s; }
+
+  /* ========================= Quick actions ========================= */
+
+  .quick-actions {
+    max-width: 760px;
+    margin: 9px auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: center;
+  }
+
+  .qa {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 99px;
+    padding: 6px 13px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.2;
+    transition: border-color .14s, color .14s, background .14s, transform .06s;
+  }
+  .qa:hover { color: var(--text); border-color: var(--accent); background: var(--hover); }
+  .qa:active { transform: scale(.97); }
+  .qa .qa-emoji { font-size: 14px; line-height: 1; }
+
+  /* ========================= Composer ========================= */
+
+  #composerWrap {
+    flex-shrink: 0;
+    padding: 6px 24px 18px;
+  }
+
+  #composer {
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 10px 10px 8px 14px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  #composer:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  #messageInput {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.55;
+    resize: none;
+    outline: none;
+    max-height: 210px;
+    padding: 3px 0 5px;
+  }
+  #messageInput::placeholder { color: var(--text-dim); }
+
+  .composer-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  #modelSelect {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    cursor: pointer;
+    outline: none;
+    max-width: 245px;
+    transition: color .12s, border-color .12s;
+  }
+  #modelSelect:hover { color: var(--text); border-color: var(--text-dim); }
+  #modelSelect option { background: var(--panel); color: var(--text); }
+
+  .spacer { flex: 1; }
+
+  .hint { font-size: 11.5px; color: var(--text-dim); }
+
+  #sendBtn, #stopBtn {
+    border: none;
+    border-radius: 10px;
+    height: 34px;
+    padding: 0 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: filter .15s, transform .06s, opacity .15s;
+  }
+  #sendBtn { background: var(--accent); color: var(--on-accent); }
+  #sendBtn:hover:not(:disabled) { filter: brightness(1.08); }
+  #sendBtn:active:not(:disabled) { transform: scale(.97); }
+  #sendBtn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; }
+
+  #stopBtn { background: var(--surface); color: var(--text); border: 1px solid var(--border); display: none; }
+  #stopBtn:hover { border-color: var(--danger); color: var(--danger); }
+  body.busy #sendBtn { display: none; }
+  body.busy #stopBtn { display: flex; }
+
+  .footnote { text-align: center; font-size: 11.5px; color: var(--text-dim); margin-top: 9px; }
+
+  /* ========================= Modals ========================= */
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(3px);
+    z-index: 50;
+    display: none;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  .scrim.open { display: flex; align-items: flex-start; justify-content: center; }
+
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 520px;
+    margin: auto;
+    box-shadow: 0 24px 60px var(--shadow);
+    overflow: hidden;
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-head h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em; }
+  .modal-body { padding: 18px 20px 20px; }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 13.5px; font-weight: 500; margin-bottom: 5px; }
+  .field .desc { font-size: 12.5px; color: var(--text-dim); margin: -2px 0 7px; line-height: 1.45; }
+
+  .field input[type="text"], .field textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 9px;
+    padding: 9px 11px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 9px;
+    padding: 9px 11px;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .field select option { background: var(--panel); color: var(--text); }
+  .field input[type="text"]:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 78px; line-height: 1.5; }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 0;
+  }
+  .switch { position: relative; width: 40px; height: 23px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .track {
+    position: absolute; inset: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    cursor: pointer;
+    transition: background .18s;
+  }
+  .track::after {
+    content: "";
+    position: absolute;
+    left: 3px; top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: transform .18s, background .18s;
+  }
+  .switch input:checked + .track { background: var(--accent); border-color: transparent; }
+  .switch input:checked + .track::after { transform: translate(17px, -50%); background: var(--on-accent); }
+
+  .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  .theme-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 11px;
+    padding: 9px 11px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 13.5px;
+    text-align: left;
+    transition: border-color .12s, color .12s;
+  }
+  .theme-card:hover { border-color: var(--text-dim); color: var(--text); }
+  .theme-card.active { border-color: var(--accent); color: var(--text); }
+  .theme-card .prev {
+    width: 30px; height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(128,128,128,.3);
+  }
+  .theme-card .prev i {
+    position: absolute;
+    right: 4px; bottom: 4px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .theme-card .label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
+  .color-row { display: flex; align-items: center; gap: 9px; font-size: 13px; cursor: pointer; }
+  .color-row input[type="color"] {
+    width: 30px; height: 26px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: none;
+    padding: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .color-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .modal-foot {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin: 20px 0 9px;
+  }
+  .section-title.first { margin-top: 0; }
+
+  #toast {
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translate(-50%, 14px);
+    background: var(--text);
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border-radius: 99px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 90;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  #sideScrim {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 15;
+    display: none;
+  }
+
+  @media (max-width: 820px) {
+    #sidebar { position: fixed; top: 0; bottom: 0; left: 0; }
+    body:not(.collapsed) #sideScrim { display: block; }
+    #chatWindow { padding: 20px 16px 8px; }
+    #composerWrap { padding: 6px 12px 12px; }
+    .turn.user .content { max-width: 92%; }
+    .starters { grid-template-columns: 1fr; }
+    .welcome h2 { font-size: 25px; }
+    .theme-grid, .color-grid { grid-template-columns: 1fr; }
+    .hint { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    #chatWindow { scroll-behavior: auto; }
+  }
+
+  /* ===================================================================
+     ADDITIONS: attachments, web mode, modes, voice, folders, pins,
+     branching, code playground, sources
+     =================================================================== */
+
+  /* --- composer controls --- */
+  .composer-bar { flex-wrap: wrap; row-gap: 7px; }
+
+  .tool-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    height: 30px;
+    padding: 0 9px;
+    font-size: 12.5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+    transition: color .12s, border-color .12s, background .12s;
+  }
+  .tool-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .tool-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .tool-btn.rec { color: var(--danger); border-color: var(--danger); animation: recpulse 1.1s ease-in-out infinite; }
+  @keyframes recpulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  .tool-btn .emj { font-size: 13px; line-height: 1; }
+
+  .mini-select {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 0 6px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    cursor: pointer;
+    outline: none;
+    max-width: 160px;
+    transition: color .12s, border-color .12s;
+  }
+  .mini-select:hover { color: var(--text); border-color: var(--text-dim); }
+  .mini-select option { background: var(--panel); color: var(--text); }
+
+  /* --- attachment chips --- */
+  .attach-row {
+    display: none;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 2px 0 8px;
+  }
+  .attach-row.show { display: flex; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px 8px;
+    font-size: 12.5px;
+    color: var(--text);
+    max-width: 230px;
+  }
+  .chip .thumb {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--code-bg);
+  }
+  .chip .ic {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    display: grid; place-items: center;
+    background: var(--code-bg);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .chip .txt { min-width: 0; line-height: 1.25; }
+  .chip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip .sz { font-size: 10.5px; color: var(--text-dim); }
+  .chip .x {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; padding: 2px; line-height: 0; border-radius: 5px;
+  }
+  .chip .x:hover { color: var(--danger); }
+  .chip.busy { opacity: .6; }
+
+  .turn .files { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 8px; justify-content: flex-end; }
+  .turn.ai .files { justify-content: flex-start; padding-left: 18px; }
+  .turn .files img.shot {
+    max-width: min(300px, 70%);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: block;
+    cursor: zoom-in;
+  }
+
+  /* --- drop overlay --- */
+  #dropZone {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: none;
+    place-items: center;
+    background: var(--accent-soft);
+    backdrop-filter: blur(2px);
+  }
+  #dropZone.show { display: grid; }
+  #dropZone .box {
+    border: 2px dashed var(--accent);
+    border-radius: 18px;
+    padding: 28px 38px;
+    background: var(--panel);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #dropZone .box small { display: block; font-weight: 400; color: var(--text-dim); margin-top: 6px; font-size: 12.5px; }
+
+  /* --- sources --- */
+  .sources {
+    margin-top: 12px;
+    margin-left: 18px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 9px 12px;
+    background: var(--surface);
+  }
+  .sources h5 {
+    margin: 0 0 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sources ol { margin: 0; padding-left: 18px; }
+  .sources li { margin: 3px 0; font-size: 12.5px; }
+  .sources a { color: var(--accent); text-decoration: none; }
+  .sources a:hover { text-decoration: underline; }
+  .sources .host { color: var(--text-dim); font-size: 11.5px; }
+
+  /* --- branch nav --- */
+  .branch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+  .branch button {
+    background: none; border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    font-size: 12px;
+  }
+  .branch button:hover:not(:disabled) { color: var(--text); background: var(--hover); }
+  .branch button:disabled { opacity: .35; cursor: default; }
+  .branch .n { font-size: 11px; color: var(--text-dim); padding: 0 2px; font-variant-numeric: tabular-nums; }
+
+  /* --- code block toolbar / playground --- */
+  .code-block .bar {
+    position: absolute;
+    top: 7px; right: 7px;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .code-block:hover .bar, .code-block:focus-within .bar { opacity: 1; }
+  .code-block .bar button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 7px;
+    padding: 4px 8px;
+    font-size: 11.5px;
+    cursor: pointer;
+    line-height: 1.2;
+  }
+  .code-block .bar button:hover { color: var(--text); border-color: var(--text-dim); }
+  .code-block .bar button.run:hover { color: var(--accent); border-color: var(--accent); }
+  .code-block .lang {
+    position: absolute;
+    top: 9px; left: 13px;
+    font-size: 10.5px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: .75;
+  }
+  .code-block.has-lang pre { padding-top: 26px; }
+
+  .run-out {
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    padding: 9px 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 260px;
+    overflow: auto;
+  }
+  .run-out .head {
+    font-family: inherit;
+    color: var(--text-dim);
+    font-size: 10.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .run-out .head button { background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:11px; }
+  .run-out .err { color: var(--danger); }
+  .run-out iframe { width: 100%; height: 230px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+
+  /* --- sidebar: pins & folders --- */
+  .side-tools { display: flex; gap: 6px; padding: 0 12px 2px; }
+  .side-tools button {
+    flex: 1;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    border-radius: 9px;
+    padding: 6px 8px;
+    font-size: 12.5px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: color .12s, border-color .12s;
+  }
+  .side-tools button:hover { color: var(--text); border-color: var(--accent); }
+
+  .folder-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 8px;
+    margin-top: 6px;
+    border-radius: 9px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: background .12s, color .12s;
+  }
+  .folder-head:hover { background: var(--hover); color: var(--text); }
+  .folder-head.drop { background: var(--accent-soft); color: var(--text); outline: 1px dashed var(--accent); }
+  .folder-head .caret-ic { transition: transform .15s; flex-shrink: 0; }
+  .folder-head.closed .caret-ic { transform: rotate(-90deg); }
+  .folder-head .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .folder-head .cnt { font-size: 11px; opacity: .7; }
+  .folder-head .fa { display: flex; gap: 1px; opacity: 0; }
+  .folder-head:hover .fa { opacity: 1; }
+  .folder-kids { padding-left: 9px; border-left: 1px solid var(--border); margin-left: 9px; }
+
+  .chat-item.dragging { opacity: .45; }
+  .chat-item .pin-ic { color: var(--accent); flex-shrink: 0; }
+
+  /* --- read aloud active --- */
+  .act.speaking { color: var(--accent); }
+
+  /* --- lightbox --- */
+  #lightbox {
+    position: fixed; inset: 0; z-index: 95;
+    background: rgba(0,0,0,.8);
+    display: none;
+    place-items: center;
+    padding: 30px;
+    cursor: zoom-out;
+  }
+  #lightbox.open { display: grid; }
+  #lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+
+  @media (max-width: 820px) {
+    .hint { display: none; }
+    .mini-select { max-width: 116px; }
+    .tool-btn .lbl { display: none; }
+  }
+</style>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmYxZjNkIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmNmEzZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTgiIGZpbGw9IiMwYTBhMGMiLz4KICA8cmVjdCB4PSIxLjUiIHk9IjEuNSIgd2lkdGg9IjYxIiBoZWlnaHQ9IjYxIiByeD0iMTYuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utb3BhY2l0eT0iLjU1IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwhLS0gYm93bGVyIGhhdCBjcm93biAtLT4KICA8cGF0aCBkPSJNMzIgMTEuNWMtNi45IDAtMTEuNCAzLjEtMTEuNCA2Ljl2Mi40YzAgLjUuNC45LjkuOWgyMWMuNSAwIC45LS40LjktLjl2LTIuNGMwLTMuOC00LjUtNi45LTExLjQtNi45eiIgZmlsbD0idXJsKCNnKSIvPgogIDwhLS0gaGF0IGJyaW0gLS0+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMjMuMiIgcng9IjE1IiByeT0iMi41IiBmaWxsPSJ1cmwoI2cpIi8+CiAgPCEtLSB0aGUgbXVzdGFjaGUgLS0+CiAgPHBhdGggZD0iTTMyIDQwLjVjLTIuOS0zLjUtOC4xLTQuNC0xMS44LTEuOC0zLjIgMi4xLTMuNyA2LjUtLjcgOC40IDIuNSAxLjcgNi4yIDEgOC4zLTEuMSAxLjctMS44IDMtMy43IDQuMi0zLjdzMi41IDEuOSA0LjIgMy43YzIuMSAyLjEgNS44IDIuOCA4LjMgMS4xIDMtMS45IDIuNS02LjMtLjctOC40LTMuNy0yLjYtOC45LTEuNy0xMS44IDEuOHoiIGZpbGw9IiNmNGY0ZjYiLz4KICA8IS0tIHBvcCAtLT4KICA8cGF0aCBkPSJNNTAuNSA0N2wxLjQgMy45IDMuOSAxLjQtMy45IDEuNC0xLjQgMy45LTEuNC0zLjktMy45LTEuNCAzLjktMS40eiIgZmlsbD0idXJsKCNnKSIvPgo8L3N2Zz4K" type="image/svg+xml">
+<style>
+/* Mustiga Mannen skin — loads after the built-in styles and only overrides.
+   Works with every theme because it is built from the theme variables. */
+:root{
+  --grad: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 50%, #8b7bff));
+  --glass: color-mix(in srgb, var(--panel) 72%, transparent);
+  --line: color-mix(in srgb, var(--border) 70%, transparent);
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+::selection{background:color-mix(in srgb,var(--accent) 35%,transparent)}
+body{letter-spacing:-.003em}
+
+/* ---------- background ---------- */
+#main{
+  background:
+    radial-gradient(900px 480px at 85% -12%, color-mix(in srgb,var(--accent) 14%,transparent), transparent 62%),
+    radial-gradient(700px 420px at -5% 105%, color-mix(in srgb,var(--accent) 8%,transparent), transparent 62%),
+    var(--bg);
+}
+
+/* ---------- brand / logo ---------- */
+.brand .mark{
+  font-size:0; width:30px; height:30px; border-radius:9px;
+  background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmYxZjNkIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmNmEzZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTgiIGZpbGw9IiMwYTBhMGMiLz4KICA8cmVjdCB4PSIxLjUiIHk9IjEuNSIgd2lkdGg9IjYxIiBoZWlnaHQ9IjYxIiByeD0iMTYuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utb3BhY2l0eT0iLjU1IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwhLS0gYm93bGVyIGhhdCBjcm93biAtLT4KICA8cGF0aCBkPSJNMzIgMTEuNWMtNi45IDAtMTEuNCAzLjEtMTEuNCA2Ljl2Mi40YzAgLjUuNC45LjkuOWgyMWMuNSAwIC45LS40LjktLjl2LTIuNGMwLTMuOC00LjUtNi45LTExLjQtNi45eiIgZmlsbD0idXJsKCNnKSIvPgogIDwhLS0gaGF0IGJyaW0gLS0+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMjMuMiIgcng9IjE1IiByeT0iMi41IiBmaWxsPSJ1cmwoI2cpIi8+CiAgPCEtLSB0aGUgbXVzdGFjaGUgLS0+CiAgPHBhdGggZD0iTTMyIDQwLjVjLTIuOS0zLjUtOC4xLTQuNC0xMS44LTEuOC0zLjIgMi4xLTMuNyA2LjUtLjcgOC40IDIuNSAxLjcgNi4yIDEgOC4zLTEuMSAxLjctMS44IDMtMy43IDQuMi0zLjdzMi41IDEuOSA0LjIgMy43YzIuMSAyLjEgNS44IDIuOCA4LjMgMS4xIDMtMS45IDIuNS02LjMtLjctOC40LTMuNy0yLjYtOC45LTEuNy0xMS44IDEuOHoiIGZpbGw9IiNmNGY0ZjYiLz4KICA8IS0tIHBvcCAtLT4KICA8cGF0aCBkPSJNNTAuNSA0N2wxLjQgMy45IDMuOSAxLjQtMy45IDEuNC0xLjQgMy45LTEuNC0zLjktMy45LTEuNCAzLjktMS40eiIgZmlsbD0idXJsKCNnKSIvPgo8L3N2Zz4K") center/cover no-repeat;
+  box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 35%,transparent);
+}
+.brand .name{font-weight:650;font-size:15px}
+
+/* ---------- sidebar ---------- */
+#sidebar{background:color-mix(in srgb,var(--side) 88%,transparent);backdrop-filter:blur(18px);border-right-color:var(--line)}
+#newChatBtn{
+  background:var(--grad); border-radius:12px; padding:11px 12px;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 28%,transparent), inset 0 1px 0 rgba(255,255,255,.18);
+  transition:transform .2s var(--ease), box-shadow .2s var(--ease), filter .15s;
+}
+#newChatBtn:hover{transform:translateY(-1px);box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 38%,transparent), inset 0 1px 0 rgba(255,255,255,.2)}
+#searchInput{border-radius:11px;background:color-mix(in srgb,var(--surface) 70%,transparent);border-color:var(--line)}
+.chat-item{border-radius:11px;transition:background .18s var(--ease), transform .18s var(--ease)}
+.chat-item:hover{transform:translateX(2px)}
+.chat-item.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 16%,transparent),transparent 120%)}
+.chat-item.active::before{left:2px;width:3px;background:var(--grad)}
+.group-label{text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;opacity:.8}
+.foot-btn{border-radius:11px}
+.side-foot{border-top-color:var(--line)}
+
+/* ---------- header ---------- */
+header{background:var(--glass);backdrop-filter:blur(16px) saturate(1.3);border-bottom-color:var(--line);position:relative;z-index:5}
+.ghost-btn{border-radius:10px;border-color:var(--line)}
+
+/* ---------- messages ---------- */
+.thread{gap:30px}
+.turn.user .content{
+  background:linear-gradient(135deg,var(--user-bubble),color-mix(in srgb,var(--user-bubble) 78%,var(--accent)));
+  border:1px solid var(--line); border-radius:20px 20px 6px 20px;
+  box-shadow:0 4px 16px var(--shadow);
+}
+.turn.ai .content{border-left:0;padding:0}
+.turn.ai .who,.turn.ai .actions,.turn.ai .files{padding-left:0}
+.turn.ai .who::before{
+  content:"";width:20px;height:20px;border-radius:7px;flex-shrink:0;
+  background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmYxZjNkIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmNmEzZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTgiIGZpbGw9IiMwYTBhMGMiLz4KICA8cmVjdCB4PSIxLjUiIHk9IjEuNSIgd2lkdGg9IjYxIiBoZWlnaHQ9IjYxIiByeD0iMTYuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utb3BhY2l0eT0iLjU1IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwhLS0gYm93bGVyIGhhdCBjcm93biAtLT4KICA8cGF0aCBkPSJNMzIgMTEuNWMtNi45IDAtMTEuNCAzLjEtMTEuNCA2Ljl2Mi40YzAgLjUuNC45LjkuOWgyMWMuNSAwIC45LS40LjktLjl2LTIuNGMwLTMuOC00LjUtNi45LTExLjQtNi45eiIgZmlsbD0idXJsKCNnKSIvPgogIDwhLS0gaGF0IGJyaW0gLS0+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMjMuMiIgcng9IjE1IiByeT0iMi41IiBmaWxsPSJ1cmwoI2cpIi8+CiAgPCEtLSB0aGUgbXVzdGFjaGUgLS0+CiAgPHBhdGggZD0iTTMyIDQwLjVjLTIuOS0zLjUtOC4xLTQuNC0xMS44LTEuOC0zLjIgMi4xLTMuNyA2LjUtLjcgOC40IDIuNSAxLjcgNi4yIDEgOC4zLTEuMSAxLjctMS44IDMtMy43IDQuMi0zLjdzMi41IDEuOSA0LjIgMy43YzIuMSAyLjEgNS44IDIuOCA4LjMgMS4xIDMtMS45IDIuNS02LjMtLjctOC40LTMuNy0yLjYtOC45LTEuNy0xMS44IDEuOHoiIGZpbGw9IiNmNGY0ZjYiLz4KICA8IS0tIHBvcCAtLT4KICA8cGF0aCBkPSJNNTAuNSA0N2wxLjQgMy45IDMuOSAxLjQtMy45IDEuNC0xLjQgMy45LTEuNC0zLjktMy45LTEuNCAzLjktMS40eiIgZmlsbD0idXJsKCNnKSIvPgo8L3N2Zz4K") center/cover no-repeat;
+}
+.sources{margin-left:0;border-radius:14px;background:var(--glass);border-color:var(--line)}
+.turn.error .content{background:color-mix(in srgb,var(--danger) 10%,transparent);border:1px solid color-mix(in srgb,var(--danger) 40%,transparent);border-radius:14px;padding:12px 14px}
+.act{border-radius:9px}
+.code-block{border-radius:14px;border-color:var(--line);box-shadow:0 6px 22px var(--shadow)}
+.caret{background:var(--grad);box-shadow:0 0 10px var(--accent)}
+
+/* ---------- welcome ---------- */
+.welcome{text-align:center;max-width:640px;margin-top:9vh;animation:rise .6s var(--ease) both}
+.welcome::before{
+  content:"";display:block;width:68px;height:68px;margin:0 auto 22px;border-radius:20px;
+  background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmYxZjNkIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmNmEzZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTgiIGZpbGw9IiMwYTBhMGMiLz4KICA8cmVjdCB4PSIxLjUiIHk9IjEuNSIgd2lkdGg9IjYxIiBoZWlnaHQ9IjYxIiByeD0iMTYuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utb3BhY2l0eT0iLjU1IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwhLS0gYm93bGVyIGhhdCBjcm93biAtLT4KICA8cGF0aCBkPSJNMzIgMTEuNWMtNi45IDAtMTEuNCAzLjEtMTEuNCA2Ljl2Mi40YzAgLjUuNC45LjkuOWgyMWMuNSAwIC45LS40LjktLjl2LTIuNGMwLTMuOC00LjUtNi45LTExLjQtNi45eiIgZmlsbD0idXJsKCNnKSIvPgogIDwhLS0gaGF0IGJyaW0gLS0+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMjMuMiIgcng9IjE1IiByeT0iMi41IiBmaWxsPSJ1cmwoI2cpIi8+CiAgPCEtLSB0aGUgbXVzdGFjaGUgLS0+CiAgPHBhdGggZD0iTTMyIDQwLjVjLTIuOS0zLjUtOC4xLTQuNC0xMS44LTEuOC0zLjIgMi4xLTMuNyA2LjUtLjcgOC40IDIuNSAxLjcgNi4yIDEgOC4zLTEuMSAxLjctMS44IDMtMy43IDQuMi0zLjdzMi41IDEuOSA0LjIgMy43YzIuMSAyLjEgNS44IDIuOCA4LjMgMS4xIDMtMS45IDIuNS02LjMtLjctOC40LTMuNy0yLjYtOC45LTEuNy0xMS44IDEuOHoiIGZpbGw9IiNmNGY0ZjYiLz4KICA8IS0tIHBvcCAtLT4KICA8cGF0aCBkPSJNNTAuNSA0N2wxLjQgMy45IDMuOSAxLjQtMy45IDEuNC0xLjQgMy45LTEuNC0zLjktMy45LTEuNCAzLjktMS40eiIgZmlsbD0idXJsKCNnKSIvPgo8L3N2Zz4K") center/cover no-repeat;
+  box-shadow:0 12px 40px color-mix(in srgb,var(--accent) 40%,transparent);
+  animation:float 5s ease-in-out infinite;
+}
+.welcome h2{
+  font-size:36px;font-weight:650;letter-spacing:-.035em;
+  background:linear-gradient(120deg,var(--text) 30%,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.welcome p{margin-left:auto;margin-right:auto}
+.starters{text-align:left}
+.starter{
+  background:var(--glass);backdrop-filter:blur(10px);border-color:var(--line);border-radius:16px;padding:14px 16px;
+  transition:border-color .2s, background .2s, opacity .32s, transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.starter:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--shadow);border-color:color-mix(in srgb,var(--accent) 70%,transparent)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* ---------- composer ---------- */
+#composerWrap{padding-top:4px}
+#composer{
+  background:var(--glass);backdrop-filter:blur(20px) saturate(1.3);
+  border-color:var(--line);border-radius:24px;padding:12px 12px 10px 18px;
+  box-shadow:0 18px 50px var(--shadow);
+}
+#composer:focus-within{border-color:color-mix(in srgb,var(--accent) 80%,transparent);box-shadow:0 18px 50px var(--shadow),0 0 0 4px var(--accent-soft)}
+.tool-btn,.mini-select,#modelSelect{border-radius:999px;border-color:var(--line)}
+.tool-btn.on{box-shadow:0 0 0 3px var(--accent-soft)}
+#sendBtn{background:var(--grad);border-radius:999px;height:36px;padding:0 16px;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 30%,transparent);transition:transform .2s var(--ease),filter .15s}
+#sendBtn:hover:not(:disabled){transform:translateY(-1px)}
+#sendBtn:disabled{box-shadow:none;background:var(--surface)}
+#stopBtn{border-radius:999px;height:36px}
+.qa{border-radius:999px;background:var(--glass);border-color:var(--line)}
+.qa:hover{transform:translateY(-1px)}
+.footnote{opacity:.7}
+
+/* ---------- modals / misc ---------- */
+.scrim{backdrop-filter:blur(8px)}
+.modal{background:var(--glass);backdrop-filter:blur(26px) saturate(1.3);border-color:var(--line);border-radius:24px;box-shadow:0 30px 80px var(--shadow)}
+.modal-head{border-bottom-color:var(--line)}
+.theme-card{border-radius:14px;border-color:var(--line)}
+.theme-card.active{box-shadow:0 0 0 3px var(--accent-soft)}
+.btn-sm{border-radius:999px}
+.btn-sm.primary{background:var(--grad)}
+.dropdown{background:var(--glass);backdrop-filter:blur(20px);border-radius:14px;border-color:var(--line)}
+#toast{background:var(--grad);color:var(--on-accent);box-shadow:0 10px 30px var(--shadow)}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--text-dim) 35%,transparent)}
+@media (max-width:820px){.welcome h2{font-size:28px}.welcome{margin-top:5vh}}
+@media (prefers-reduced-motion:reduce){.welcome,.welcome::before{animation:none}}
+
+/* =====================================================================
+   Julmust soda skin (cherry cola) - overrides only, theme-variable based.
+   The "Soda" built-in theme (red + black) is the default.
+   ===================================================================== */
+:root{
+  --fredoka:"Fredoka","Baloo 2","Nunito","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --gold:#ffc46b;
+  --gel:linear-gradient(180deg,rgba(255,255,255,.26) 0,rgba(255,255,255,.05) 48%,rgba(255,255,255,0) 50%),linear-gradient(180deg,color-mix(in srgb,var(--accent) 88%,#fff),var(--accent) 55%,color-mix(in srgb,var(--accent) 72%,#000));
+  --gelsh:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.22);
+  --grad:var(--gel);
+}
+body{font-family:"Instrument Sans",var(--fredoka),-apple-system,"Segoe UI",sans-serif}
+:focus-visible{outline:3px solid var(--text); outline-offset:2px}
+
+/* rising bubbles behind the conversation (pure CSS, 9 nodes, no pointer events) */
+#main{isolation:isolate}
+#fizz{position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; contain:strict}
+#fizz i{
+  position:absolute; bottom:-60px; left:var(--x); width:var(--s); height:var(--s); border-radius:50%; opacity:0;
+  border:1px solid rgba(255,255,255,.2);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.7) 0 7%, rgba(255,255,255,.14) 8% 22%, transparent 24%),
+    radial-gradient(circle at 50% 50%, transparent 52%, color-mix(in srgb,var(--accent) 34%,transparent) 100%);
+  animation:jFizz var(--t) linear var(--dl) infinite; will-change:transform,opacity;
+}
+@keyframes jFizz{
+  0%{transform:translate3d(0,0,0); opacity:0}
+  10%{opacity:.8}
+  50%{transform:translate3d(var(--dx),-55vh,0)}
+  90%{opacity:.6}
+  100%{transform:translate3d(calc(var(--dx) * -.6),-112vh,0); opacity:0}
+}
+
+/* brand: bottle-cap ring around the mark */
+.brand .mark{border-radius:50%; box-shadow:0 0 0 2.5px var(--gold), 0 0 0 4.5px rgba(0,0,0,.35), 0 4px 16px color-mix(in srgb,var(--accent) 45%,transparent); transition:transform .35s var(--spring)}
+.brand:hover .mark{transform:rotate(-14deg) scale(1.08)}
+.brand .name{font-family:var(--fredoka); font-weight:700; font-size:17px; letter-spacing:.2px}
+
+/* sidebar: liquid edge + pill controls */
+#sidebar{border-right:3px solid color-mix(in srgb,var(--accent) 70%,transparent)}
+#newChatBtn{border-radius:999px; font-family:var(--fredoka); font-weight:600; letter-spacing:.2px; box-shadow:var(--gelsh), 0 6px 18px color-mix(in srgb,var(--accent) 38%,transparent); text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#newChatBtn:hover{transform:translateY(-2px) scale(1.03); box-shadow:var(--gelsh), 0 10px 26px color-mix(in srgb,var(--accent) 48%,transparent)}
+#newChatBtn:active{transform:scale(.95)}
+#searchInput{border-radius:999px; border-width:2px}
+.chat-item{border-radius:999px}
+.chat-item:hover{transform:translateX(3px)}
+.chat-item.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 24%,transparent),transparent 120%); box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
+.chat-item.active::before{display:none}
+.foot-btn{border-radius:999px}
+.group-label{font-family:var(--fredoka); color:var(--gold); opacity:.9}
+
+/* header: red cola rim */
+header{border-bottom:3px solid color-mix(in srgb,var(--accent) 75%,transparent)}
+.ghost-btn{border-radius:999px; border-width:2px; transition:transform .3s var(--spring), border-color .15s, background .15s}
+.ghost-btn:hover{transform:translateY(-2px) scale(1.08)}
+.ghost-btn:active{transform:scale(.9)}
+#chatTitle{font-family:var(--fredoka); font-weight:600; font-size:16px}
+
+/* messages */
+.turn.user .content{border-radius:24px 24px 8px 24px; border:1.5px solid color-mix(in srgb,var(--accent) 38%,transparent)}
+.turn.ai .who{font-family:var(--fredoka); font-weight:600}
+.turn.ai .who::before{border-radius:50%; box-shadow:0 0 0 2px var(--gold)}
+.sources, .code-block{border-radius:20px}
+.act{border-radius:999px}
+.caret{border-radius:50%}
+.dots i{box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+
+/* welcome */
+.welcome::before{border-radius:50%; box-shadow:0 0 0 4px var(--gold), 0 0 0 8px rgba(0,0,0,.35), 0 14px 44px color-mix(in srgb,var(--accent) 55%,transparent)}
+.welcome h2{
+  font-family:var(--fredoka); font-size:44px; font-weight:700; letter-spacing:.01em; line-height:1.05;
+  background:linear-gradient(180deg,#fff4ee 0 8%,color-mix(in srgb,var(--accent) 55%,#fff) 18%,var(--accent) 48%,color-mix(in srgb,var(--accent) 62%,#000) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 3px 0 rgba(0,0,0,.4)) drop-shadow(0 0 18px color-mix(in srgb,var(--accent) 40%,transparent));
+}
+.starter{border-radius:26px; border-width:2px}
+.starter:hover{transform:translateY(-4px) rotate(-.6deg) scale(1.02); box-shadow:0 14px 32px var(--shadow), 0 0 26px color-mix(in srgb,var(--accent) 32%,transparent)}
+.starter:nth-child(even):hover{transform:translateY(-4px) rotate(.6deg) scale(1.02)}
+
+/* composer + buttons */
+#composer{border-radius:32px; border-width:2px; box-shadow:0 18px 50px var(--shadow), inset 0 1px 0 rgba(255,255,255,.07)}
+#composer:focus-within{box-shadow:0 18px 50px var(--shadow), 0 0 0 5px var(--accent-soft), 0 0 30px var(--accent-soft)}
+.tool-btn, .mini-select, #modelSelect, .qa, .btn-sm{border-width:2px; transition:transform .3s var(--spring), border-color .15s, background .15s, box-shadow .2s}
+.tool-btn:hover, .qa:hover, .btn-sm:hover{transform:translateY(-2px) scale(1.05)}
+.tool-btn:active, .qa:active, .btn-sm:active{transform:scale(.93)}
+#sendBtn{border-radius:999px; box-shadow:var(--gelsh), 0 6px 16px color-mix(in srgb,var(--accent) 38%,transparent); text-shadow:0 1px 2px rgba(0,0,0,.35); transition:transform .3s var(--spring), filter .15s}
+#sendBtn:hover:not(:disabled){transform:translateY(-2px) scale(1.1) rotate(-4deg)}
+#sendBtn:active:not(:disabled){transform:scale(.88)}
+#sendBtn:disabled{box-shadow:none; text-shadow:none}
+.btn-sm.primary{box-shadow:var(--gelsh); color:var(--on-accent); text-shadow:0 1px 2px rgba(0,0,0,.3)}
+
+/* modals, toast, scrollbars */
+.modal{border-radius:32px; border:2.5px solid color-mix(in srgb,var(--accent) 55%,transparent); animation:jPop .4s var(--spring)}
+.modal-head{border-bottom-style:dashed; border-bottom-width:2px}
+@keyframes jPop{from{opacity:0; transform:scale(.9) translateY(12px)}to{opacity:1; transform:none}}
+.theme-card{border-radius:999px; border-width:2px}
+.theme-card.active{border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+.dropdown{border-radius:22px}
+#toast{border-radius:999px; background:var(--gel); box-shadow:var(--gelsh), 0 14px 34px var(--shadow); font-family:var(--fredoka); font-weight:500}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 55%,#000); border-radius:8px}
+
+@media (max-width:820px){.welcome h2{font-size:32px}}
+@media (prefers-reduced-motion:reduce){
+  #fizz{display:none}
+  .brand .mark, .ghost-btn, #newChatBtn, #sendBtn, .starter, .tool-btn, .qa, .btn-sm, .modal{transition:none !important; animation:none !important}
+}
+
+</style>
+<style>
+/* Minimal mode (html.minimal): flat theme-variable colours, no animation, gradients, blur, shadows or bubbles. */
+html.minimal{
+  --sys:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --fredoka:var(--sys); --grad:var(--accent); --gel:var(--accent); --gelsh:none; --glass:var(--panel);
+}
+html.minimal body{font-family:var(--sys)}
+html.minimal *, html.minimal *::before, html.minimal *::after{
+  animation:none !important; transition:none !important;
+  box-shadow:none !important; text-shadow:none !important;
+  filter:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+html.minimal #newChatBtn:hover, html.minimal #newChatBtn:active, html.minimal .chat-item:hover,
+html.minimal .ghost-btn:hover, html.minimal .ghost-btn:active, html.minimal .starter:hover,
+html.minimal .starter:nth-child(even):hover, html.minimal .tool-btn:hover, html.minimal .tool-btn:active,
+html.minimal .qa:hover, html.minimal .qa:active, html.minimal .btn-sm:hover, html.minimal .btn-sm:active,
+html.minimal #sendBtn:hover:not(:disabled), html.minimal #sendBtn:active:not(:disabled){transform:none}
+html.minimal #fizz{display:none}
+html.minimal #main{background:var(--bg)}
+html.minimal #sidebar, html.minimal header, html.minimal #composer, html.minimal .modal, html.minimal .dropdown,
+html.minimal .starter, html.minimal .qa, html.minimal .sources{background:var(--panel)}
+html.minimal #sidebar{background:var(--side); border-right:1px solid var(--line)}
+html.minimal header{border-bottom:1px solid var(--line)}
+html.minimal .welcome h2{background:none; -webkit-background-clip:border-box; background-clip:border-box; color:var(--accent)}
+html.minimal .welcome::before, html.minimal .brand .mark{border-radius:8px}
+html.minimal .turn.user .content{background:var(--user-bubble); border:1px solid var(--line); border-radius:10px}
+html.minimal .chat-item, html.minimal .foot-btn, html.minimal #searchInput, html.minimal .act, html.minimal .tool-btn,
+html.minimal .mini-select, html.minimal #modelSelect, html.minimal .qa, html.minimal .btn-sm, html.minimal .ghost-btn,
+html.minimal .theme-card, html.minimal #newChatBtn, html.minimal #sendBtn, html.minimal #stopBtn, html.minimal #toast{border-radius:8px}
+html.minimal #searchInput, html.minimal .tool-btn, html.minimal .mini-select, html.minimal #modelSelect, html.minimal .qa,
+html.minimal .btn-sm, html.minimal .ghost-btn, html.minimal .theme-card, html.minimal .starter, html.minimal #composer,
+html.minimal .modal{border-width:1px}
+html.minimal .starter, html.minimal .sources, html.minimal .code-block, html.minimal .dropdown, html.minimal #composer{border-radius:10px}
+html.minimal .modal{border-radius:12px; border-color:var(--line)}
+html.minimal .modal-head{border-bottom-style:solid; border-bottom-width:1px}
+html.minimal .chat-item.active{background:var(--hover); border-left:3px solid var(--accent)}
+html.minimal .tool-btn.on, html.minimal .theme-card.active{border-color:var(--accent)}
+html.minimal #sidebar .brand .name, html.minimal #chatTitle, html.minimal .turn.ai .who, html.minimal .group-label{font-family:var(--sys)}
+html.minimal .caret{background:var(--accent)}
+html.minimal .scrim{background:rgba(0,0,0,.7)}
+html.minimal .turn.ai .who::before{box-shadow:none}
+</style>
+</head>
+<body class="collapsed-init">
+
+<aside id="sidebar">
+  <div class="brand">
+    <div class="mark" id="brandMark">A</div>
+    <div class="name" id="brandName">Mustiga Mannen</div>
+  </div>
+
+  <div class="side-pad">
+    <button id="newChatBtn">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      <span data-i18n="newChat">New chat</span>
+    </button>
+  </div>
+
+  <div class="search-wrap" id="searchWrap">
+    <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="searchInput" type="text" placeholder="Search conversations" data-i18n-placeholder="searchPlaceholder" autocomplete="off">
+    <button id="searchClear" title="Clear search" data-i18n-title="clearSearch">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="side-tools">
+    <button id="newFolderBtn" title="New folder" data-i18n-title="newFolder">
+      <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+      <span data-i18n="newFolder">New folder</span>
+    </button>
+  </div>
+
+  <div id="chatList"></div>
+
+  <div class="side-foot">
+    <button class="foot-btn" id="themeBtn">
+      <span class="swatch" id="footSwatch"></span>
+      <span id="footThemeName">Midnight</span>
+    </button>
+    <button class="foot-btn" id="settingsBtn" style="flex:0 0 auto" title="Settings" data-i18n-title="settings">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</aside>
+
+<div id="sideScrim"></div>
+
+<div id="main">
+  <div id="fizz" aria-hidden="true"><i style="--x:6%;--s:11px;--t:7s;--dl:-0s;--dx:14px"></i><i style="--x:18%;--s:16px;--t:9s;--dl:-3s;--dx:-19px"></i><i style="--x:31%;--s:9px;--t:12s;--dl:-6s;--dx:24px"></i><i style="--x:47%;--s:20px;--t:8s;--dl:-1s;--dx:-29px"></i><i style="--x:60%;--s:12px;--t:13s;--dl:-12s;--dx:34px"></i><i style="--x:72%;--s:8px;--t:10s;--dl:-5s;--dx:-39px"></i><i style="--x:84%;--s:18px;--t:11s;--dl:-7s;--dx:44px"></i><i style="--x:93%;--s:10px;--t:14s;--dl:-7s;--dx:-49px"></i></div>
+  <header>
+    <button class="ghost-btn" id="sidebarToggle" title="Toggle sidebar (Ctrl+B)" data-i18n-title="toggleSidebar">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+    </button>
+    <div id="chatTitle" title="Click to rename" data-i18n-title="clickToRename">New chat</div>
+    <div class="menu-wrap">
+      <button class="ghost-btn" id="menuBtn" title="Chat options" data-i18n-title="chatOptions">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+      </button>
+      <div class="dropdown" id="chatMenu">
+        <button data-act="rename">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          <span data-i18n="renameChat">Rename chat</span>
+        </button>
+        <button data-act="pin">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M15 3l6 6-3 1-4 4-1 5-6-6 5-1 4-4z"/><path d="M8 16l-4 4"/></svg>
+          <span data-i18n="pinChat">Pin chat</span>
+        </button>
+        <button data-act="folder">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span data-i18n="moveToFolder">Move to folder…</span>
+        </button>
+        <hr>
+        <button data-act="copyAll">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          <span data-i18n="copyTranscript">Copy transcript</span>
+        </button>
+        <hr>
+        <button data-act="clear">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+          <span data-i18n="clearMessages">Clear messages</span>
+        </button>
+        <button data-act="delete" class="danger">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          <span data-i18n="deleteChat">Delete chat</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="chatWindow"><div class="thread" id="thread"></div></div>
+
+  <div id="dropZone">
+    <div class="box">
+      <span data-i18n="dropHere">Drop files here</span>
+      <small data-i18n="dropHint">Images, PDFs, Word docs, code and text</small>
+    </div>
+  </div>
+
+  <div id="composerWrap">
+    <div id="composer">
+      <div class="attach-row" id="attachRow"></div>
+      <textarea id="messageInput" rows="1" placeholder="Send a message"></textarea>
+      <div class="composer-bar">
+        <input type="file" id="fileInput" multiple hidden
+               accept="image/*,.pdf,.docx,.txt,.md,.js,.mjs,.ts,.jsx,.tsx,.html,.htm,.css,.py,.json,.csv,.xml,.yml,.yaml,.java,.c,.h,.cpp,.cs,.go,.rb,.rs,.php,.sh,.sql,.log,.ini,.toml">
+        <button class="tool-btn" id="attachBtn" title="Attach files" data-i18n-title="attachTitle">
+          <span class="emj">📎</span><span class="lbl" data-i18n="attach">Attach</span>
+        </button>
+        <button class="tool-btn" id="webBtn" title="Search the web" data-i18n-title="webTitle">
+          <span class="emj">🌐</span><span class="lbl" data-i18n="web">Web</span>
+        </button>
+        <button class="tool-btn" id="micBtn" title="Voice input" data-i18n-title="micTitle">
+          <span class="emj">🎤</span>
+        </button>
+        <select id="modeSelect" class="mini-select" title="Assistant mode" data-i18n-title="modeTitle"></select>
+        <select id="effortSelect" class="mini-select" title="Effort" data-i18n-title="effortTitle"></select>
+        <select id="modelSelect" title="Model" data-i18n-title="model">
+          <option value="gemini-3.8-flash">gemini-3.8-flash</option>
+          <option value="gemini-3.7-flash">gemini-3.7-flash</option>
+          <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+          <option value="gemini-3.5-flash" id="recommendedModel" selected>gemini-3.5-flash — Recommended</option>
+          <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
+          <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+        </select>
+        <div class="spacer"></div>
+        <span class="hint" data-i18n="hint">Enter to send &middot; Shift+Enter for a new line</span>
+        <button id="sendBtn">
+          <span data-i18n="send">Send</span>
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <button id="stopBtn">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          <span data-i18n="stop">Stop</span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-actions" id="quickActions"></div>
+    <div class="footnote" id="footnote" data-i18n="footnote">AI can make mistakes. Check important information.</div>
+  </div>
+</div>
+
+<div class="scrim" id="themeScrim">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="appearance">Appearance</h3>
+      <button class="ghost-btn" data-close>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title first" data-i18n="builtinThemes">Built-in themes</div>
+      <div class="theme-grid" id="builtinGrid"></div>
+
+      <div class="section-title" id="customTitle" data-i18n="yourThemes">Your themes</div>
+      <div class="theme-grid" id="customGrid"></div>
+
+      <div class="section-title" data-i18n="makeYourOwn">Make your own</div>
+      <div class="field">
+        <input type="text" id="themeName" placeholder="Theme name" data-i18n-placeholder="themeNamePlaceholder">
+      </div>
+      <div class="color-grid" id="colorGrid"></div>
+      <div class="modal-foot">
+        <button class="btn-sm" id="themeReset" data-i18n="startFromCurrent">Start from current</button>
+        <button class="btn-sm primary" id="themeSave" data-i18n="saveTheme">Save theme</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="settingsScrim">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="settings">Settings</h3>
+      <button class="ghost-btn" data-close>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="langSelect" data-i18n="language">Language</label>
+        <div class="desc" data-i18n="languageDesc">The language of the interface. Applies as soon as you save.</div>
+        <select id="langSelect">
+          <option value="en">English</option>
+          <option value="sv">Svenska (Swedish)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="aiNameInput" data-i18n="assistantName">Assistant name</label>
+        <div class="desc" data-i18n="assistantNameDesc">Shown above every reply, and told to the model so it answers to it.</div>
+        <input type="text" id="aiNameInput" placeholder="Mustiga Mannen" maxlength="24">
+      </div>
+      <div class="field">
+        <label for="sysPrompt" data-i18n="instructions">Instructions</label>
+        <div class="desc" data-i18n="instructionsDesc">How it should behave. Applies to new messages in every chat.</div>
+        <textarea id="sysPrompt" placeholder="You are a helpful, friendly assistant." data-i18n-placeholder="sysPromptPlaceholder"></textarea>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <label for="timeToggle" style="margin:0" data-i18n="showTimestamps">Show timestamps</label>
+          <div class="desc" style="margin:2px 0 0" data-i18n="showTimestampsDesc">Times appear on a message when you hover it.</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="timeToggle" checked><span class="track"></span></label>
+      </div>
+      <div class="desc" style="color:var(--danger); font-weight:600; margin:14px 0 -4px" data-i18n="customApiKeyWarning">⚠ WARNING: Do NOT change unless you know what this is!</div>
+      <div class="toggle-row">
+        <div>
+          <label for="customKeyToggle" style="margin:0" data-i18n="customApiKey">Custom Gemini API Key</label>
+          <div class="desc" style="margin:2px 0 0" data-i18n="customApiKeyDesc">Overrides the built-in key. Stored only in this browser, never sent anywhere but Google.</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="customKeyToggle"><span class="track"></span></label>
+      </div>
+      <div class="field" id="customKeyField" style="display:none; margin-top:-4px">
+        <input type="text" id="customKeyInput" placeholder="AQ.xxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+        <div class="desc" style="margin:6px 0 0">
+          <span data-i18n="customApiKeyHint">Get your Gemini key at:</span>
+          <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">aistudio.google.com/api-keys</a>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-sm" id="settingsCancel" data-i18n="cancel">Cancel</button>
+        <button class="btn-sm primary" id="settingsSave" data-i18n="saveSettings">Save settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="lightbox"><img alt=""></div>
+
+<div id="toast"></div>
+
+<script>
+  // ==========================================================
+  // PASTE YOUR GEMINI API KEY BELOW
+  // Get one at https://aistudio.google.com/apikey
+  const API_KEY = "AQ.Ab8RN6JSYkyII0v_eyccAwESlo5Gk_ZKPrgILn2iptMvpmUwIA";
+  // ==========================================================
+
+  // Returns the key that should actually be used for requests: the user's
+  // own key when they've switched that on and entered one, otherwise the
+  // built-in API_KEY above. The custom key lives only in localStorage
+  // (as part of `state`) and is never written back into this file.
+  function activeApiKey() {
+    if (state.useCustomKey && state.customApiKey && state.customApiKey.trim()) {
+      return state.customApiKey.trim();
+    }
+    return API_KEY;
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  const chatWindow = $("chatWindow"), thread = $("thread");
+  const messageInput = $("messageInput"), sendBtn = $("sendBtn"), stopBtn = $("stopBtn");
+  const modelSelect = $("modelSelect"), chatList = $("chatList"), newChatBtn = $("newChatBtn");
+  const chatTitleEl = $("chatTitle"), searchInput = $("searchInput"), searchWrap = $("searchWrap");
+  const toastEl = $("toast");
+  const attachRow = $("attachRow"), fileInput = $("fileInput"), attachBtn = $("attachBtn");
+  const webBtn = $("webBtn"), micBtn = $("micBtn");
+  const modeSelect = $("modeSelect"), effortSelect = $("effortSelect");
+  const dropZone = $("dropZone"), lightbox = $("lightbox");
+
+  /* =====================================================================
+     LANGUAGE
+     Every visible string lives here. Static markup is tagged with
+     data-i18n / data-i18n-placeholder / data-i18n-title and repainted by
+     applyLanguage(); everything built in JS calls t() at render time.
+     ===================================================================== */
+
+  const LANGS = ["en", "sv"];
+
+  const I18N = {
+    en: {
+      newChat: "New chat",
+      newChatTitle: "New chat",
+      searchPlaceholder: "Search conversations",
+      clearSearch: "Clear search",
+      settings: "Settings",
+      toggleSidebar: "Toggle sidebar (Ctrl+B)",
+      clickToRename: "Click to rename",
+      chatOptions: "Chat options",
+      renameChat: "Rename chat",
+      copyTranscript: "Copy transcript",
+      clearMessages: "Clear messages",
+      deleteChat: "Delete chat",
+      model: "Model",
+      recommended: "Recommended",
+      hint: "Enter to send · Shift+Enter for a new line",
+      send: "Send",
+      stop: "Stop",
+      footnote: "AI can make mistakes. Check important information.",
+      messageTo: "Message {name}",
+      appearance: "Appearance",
+      builtinThemes: "Built-in themes",
+      yourThemes: "Your themes",
+      makeYourOwn: "Make your own",
+      themeNamePlaceholder: "Theme name",
+      startFromCurrent: "Start from current",
+      saveTheme: "Save theme",
+      deleteTheme: "Delete theme",
+      language: "Language",
+      languageDesc: "The language of the interface. Applies as soon as you save.",
+      assistantName: "Assistant name",
+      assistantNameDesc: "Shown above every reply, and told to the model so it answers to it.",
+      instructions: "Instructions",
+      instructionsDesc: "How it should behave. Applies to new messages in every chat.",
+      sysPromptPlaceholder: "You are a helpful, friendly assistant.",
+      showTimestamps: "Show timestamps",
+      showTimestampsDesc: "Times appear on a message when you hover it.",
+      customApiKeyWarning: "⚠ WARNING: Do NOT change unless you know what this is!",
+      customApiKey: "Custom Gemini API Key",
+      customApiKeyDesc: "Overrides the built-in key. Stored only in this browser, never sent anywhere but Google.",
+      customApiKeyHint: "Get your Gemini key at:",
+      cancel: "Cancel",
+      saveSettings: "Save settings",
+      welcomeTitle: "What can I help with?",
+      welcomeBody: "Ask {name} anything. Conversations stay on this device, in this browser.",
+      you: "You",
+      copy: "Copy",
+      edit: "Edit",
+      rename: "Rename",
+      del: "Delete",
+      regenerate: "Regenerate",
+      tryAgain: "Try again",
+      requestFailed: "Request failed",
+      stoppedTag: "stopped",
+      saveAndResend: "Save and resend",
+      today: "Today",
+      yesterday: "Yesterday",
+      prev7: "Previous 7 days",
+      prev30: "Previous 30 days",
+      older: "Older",
+      justNow: "just now",
+      minsAgo: "{n}m ago",
+      yesterdayLower: "yesterday",
+      daysAgo: "{n}d ago",
+      msgOne: "{n} message",
+      msgMany: "{n} messages",
+      noChats: "No conversations yet. Send a message to start one.",
+      noMatch: "Nothing matches “{q}”. Try another word.",
+      noMessages: "(no messages yet)",
+      toastSettingsSaved: "Settings saved",
+      toastCopied: "Copied",
+      toastCopyFail: "Couldn't copy",
+      toastStopped: "Stopped",
+      toastThemeCopied: "Copied the current theme",
+      toastNameTheme: "Give the theme a name",
+      toastThemeSaved: "Saved {name}",
+      toastThemeDeleted: "Theme deleted",
+      toastWaitReply: "Wait for the reply to finish",
+      copyCode: "Copy",
+      copiedCode: "Copied",
+      errNoKey: "No API key set. Open this file in a text editor and paste your Gemini key into the API_KEY line near the top of the script.",
+      errEmpty: "Empty response. It may have been blocked by safety settings — try rewording.",
+      errStatus: "Request failed with status {code}",
+      attach: "Attach",
+      attachTitle: "Attach files (images, PDF, Word, code, text)",
+      web: "Web",
+      webTitle: "Search the web and cite sources",
+      micTitle: "Voice input — click and speak",
+      modeTitle: "Assistant mode",
+      effortTitle: "How hard it should think",
+      dropHere: "Drop files here",
+      dropHint: "Images, PDFs, Word docs, code and text",
+      newFolder: "New folder",
+      pinChat: "Pin chat",
+      unpinChat: "Unpin chat",
+      moveToFolder: "Move to folder…",
+      pinned: "Pinned",
+      folders: "Folders",
+      noFolder: "No folder",
+      folderNamePrompt: "Folder name",
+      renameFolder: "Rename folder",
+      deleteFolder: "Delete folder",
+      folderDeleted: "Folder deleted. Its chats moved out.",
+      movedTo: "Moved to {name}",
+      removedFromFolder: "Removed from folder",
+      sourcesTitle: "Sources",
+      readAloud: "Read aloud",
+      stopReading: "Stop",
+      download: "Download",
+      run: "Run",
+      output: "Output",
+      preview: "Preview",
+      close: "Close",
+      running: "Running…",
+      noOutput: "(no output)",
+      cantRun: "Only JavaScript and HTML run in the browser sandbox.",
+      branchOf: "Version {i} of {n}",
+      prevBranch: "Previous version",
+      nextBranch: "Next version",
+      fileTooBig: "{name} is too large (max {max} MB)",
+      fileUnsupported: "Can't read {name}",
+      readingFile: "Reading…",
+      attachedFiles: "{n} file(s) attached",
+      micUnsupported: "This browser has no speech recognition. Try Chrome or Edge.",
+      micDenied: "Microphone access was denied.",
+      listening: "Listening…",
+      ttsUnsupported: "This browser can't read text aloud.",
+      webOn: "Web search on — replies will cite sources",
+      webOff: "Web search off",
+      webFallback: "This model didn't accept web search, so it answered from its own knowledge.",
+      storageFull: "Browser storage is full. Older attachments were dropped so this chat could save.",
+      modeGeneral: "💬 General",
+      modeCoding: "💻 Coding",
+      modeStudy: "📚 Study",
+      modeResearch: "🔎 Research",
+      modeWriting: "✍️ Writing",
+      modeGaming: "🎮 Gaming",
+      modeReasoning: "🧠 Reasoning",
+      modeQuick: "⚡ Quick answer",
+      effortQuick: "⚡ Quick",
+      effortThink: "🧠 Think",
+      effortDeep: "🔬 Deep research"
+    },
+    sv: {
+      newChat: "Ny chatt",
+      newChatTitle: "Ny chatt",
+      searchPlaceholder: "Sök konversationer",
+      clearSearch: "Rensa sökning",
+      settings: "Inställningar",
+      toggleSidebar: "Visa/dölj sidofältet (Ctrl+B)",
+      clickToRename: "Klicka för att byta namn",
+      chatOptions: "Chattalternativ",
+      renameChat: "Byt namn på chatten",
+      copyTranscript: "Kopiera hela chatten",
+      clearMessages: "Rensa meddelanden",
+      deleteChat: "Radera chatten",
+      model: "Modell",
+      recommended: "Rekommenderad",
+      hint: "Enter för att skicka · Shift+Enter för ny rad",
+      send: "Skicka",
+      stop: "Stoppa",
+      footnote: "AI kan göra misstag. Kontrollera viktig information.",
+      messageTo: "Meddelande till {name}",
+      appearance: "Utseende",
+      builtinThemes: "Inbyggda teman",
+      yourThemes: "Dina teman",
+      makeYourOwn: "Skapa ett eget",
+      themeNamePlaceholder: "Temats namn",
+      startFromCurrent: "Utgå från nuvarande",
+      saveTheme: "Spara tema",
+      deleteTheme: "Radera tema",
+      language: "Språk",
+      languageDesc: "Gränssnittets språk. Gäller så snart du sparar.",
+      assistantName: "Assistentens namn",
+      assistantNameDesc: "Visas ovanför varje svar, och skickas till modellen så att den svarar på namnet.",
+      instructions: "Instruktioner",
+      instructionsDesc: "Hur den ska bete sig. Gäller nya meddelanden i alla chattar.",
+      sysPromptPlaceholder: "Du är en hjälpsam och vänlig assistent.",
+      showTimestamps: "Visa tidsstämplar",
+      showTimestampsDesc: "Tider visas på ett meddelande när du håller muspekaren över det.",
+      customApiKeyWarning: "⚠ VARNING: Ändra inte om du inte vet vad detta är!",
+      customApiKey: "Egen Gemini-API-nyckel",
+      customApiKeyDesc: "Ersätter den inbyggda nyckeln. Sparas endast i den här webbläsaren och skickas aldrig någon annanstans än till Google.",
+      customApiKeyHint: "Skaffa din Gemini-nyckel på:",
+      cancel: "Avbryt",
+      saveSettings: "Spara inställningar",
+      welcomeTitle: "Vad kan jag hjälpa dig med?",
+      welcomeBody: "Fråga {name} om vad som helst. Konversationerna stannar på den här enheten, i den här webbläsaren.",
+      you: "Du",
+      copy: "Kopiera",
+      edit: "Redigera",
+      rename: "Byt namn",
+      del: "Radera",
+      regenerate: "Svara igen",
+      tryAgain: "Försök igen",
+      requestFailed: "Förfrågan misslyckades",
+      stoppedTag: "stoppad",
+      saveAndResend: "Spara och skicka igen",
+      today: "Idag",
+      yesterday: "Igår",
+      prev7: "Senaste 7 dagarna",
+      prev30: "Senaste 30 dagarna",
+      older: "Äldre",
+      justNow: "alldeles nyss",
+      minsAgo: "{n} min sedan",
+      yesterdayLower: "igår",
+      daysAgo: "{n} d sedan",
+      msgOne: "{n} meddelande",
+      msgMany: "{n} meddelanden",
+      noChats: "Inga konversationer än. Skicka ett meddelande för att börja.",
+      noMatch: "Inget matchar ”{q}”. Prova ett annat ord.",
+      noMessages: "(inga meddelanden än)",
+      toastSettingsSaved: "Inställningarna är sparade",
+      toastCopied: "Kopierat",
+      toastCopyFail: "Kunde inte kopiera",
+      toastStopped: "Stoppad",
+      toastThemeCopied: "Kopierade nuvarande tema",
+      toastNameTheme: "Ge temat ett namn",
+      toastThemeSaved: "Sparade {name}",
+      toastThemeDeleted: "Temat är raderat",
+      toastWaitReply: "Vänta tills svaret är klart",
+      copyCode: "Kopiera",
+      copiedCode: "Kopierat",
+      errNoKey: "Ingen API-nyckel är angiven. Öppna filen i en textredigerare och klistra in din Gemini-nyckel på raden API_KEY högst upp i skriptet.",
+      errEmpty: "Tomt svar. Det kan ha blockerats av säkerhetsinställningarna — prova att formulera om.",
+      errStatus: "Förfrågan misslyckades med status {code}",
+      attach: "Bifoga",
+      attachTitle: "Bifoga filer (bilder, PDF, Word, kod, text)",
+      web: "Webb",
+      webTitle: "Sök på webben och ange källor",
+      micTitle: "Röstinmatning — klicka och tala",
+      modeTitle: "Assistentläge",
+      effortTitle: "Hur mycket den ska tänka",
+      dropHere: "Släpp filerna här",
+      dropHint: "Bilder, PDF:er, Word-dokument, kod och text",
+      newFolder: "Ny mapp",
+      pinChat: "Fäst chatten",
+      unpinChat: "Lossa chatten",
+      moveToFolder: "Flytta till mapp…",
+      pinned: "Fästa",
+      folders: "Mappar",
+      noFolder: "Ingen mapp",
+      folderNamePrompt: "Mappens namn",
+      renameFolder: "Byt namn på mappen",
+      deleteFolder: "Radera mappen",
+      folderDeleted: "Mappen är raderad. Chattarna flyttades ut.",
+      movedTo: "Flyttad till {name}",
+      removedFromFolder: "Borttagen från mappen",
+      sourcesTitle: "Källor",
+      readAloud: "Läs upp",
+      stopReading: "Stoppa",
+      download: "Ladda ner",
+      run: "Kör",
+      output: "Utdata",
+      preview: "Förhandsvisning",
+      close: "Stäng",
+      running: "Kör…",
+      noOutput: "(ingen utdata)",
+      cantRun: "Bara JavaScript och HTML kan köras i webbläsarens sandlåda.",
+      branchOf: "Version {i} av {n}",
+      prevBranch: "Föregående version",
+      nextBranch: "Nästa version",
+      fileTooBig: "{name} är för stor (max {max} MB)",
+      fileUnsupported: "Kan inte läsa {name}",
+      readingFile: "Läser…",
+      attachedFiles: "{n} fil(er) bifogade",
+      micUnsupported: "Den här webbläsaren saknar taligenkänning. Prova Chrome eller Edge.",
+      micDenied: "Åtkomst till mikrofonen nekades.",
+      listening: "Lyssnar…",
+      ttsUnsupported: "Den här webbläsaren kan inte läsa upp text.",
+      webOn: "Webbsökning på — svaren anger källor",
+      webOff: "Webbsökning av",
+      webFallback: "Modellen accepterade inte webbsökning, så den svarade utifrån sin egen kunskap.",
+      storageFull: "Webbläsarens lagring är full. Äldre bilagor togs bort så att chatten kunde sparas.",
+      modeGeneral: "💬 Allmänt",
+      modeCoding: "💻 Kodning",
+      modeStudy: "📚 Plugg",
+      modeResearch: "🔎 Research",
+      modeWriting: "✍️ Skrivande",
+      modeGaming: "🎮 Spel",
+      modeReasoning: "🧠 Resonemang",
+      modeQuick: "⚡ Snabbt svar",
+      effortQuick: "⚡ Snabbt",
+      effortThink: "🧠 Tänk",
+      effortDeep: "🔬 Djupsökning"
+    }
+  };
+
+  function t(key, vars) {
+    const lang = (state && LANGS.indexOf(state.lang) !== -1) ? state.lang : "en";
+    let s = I18N[lang][key];
+    if (s === undefined) s = I18N.en[key];
+    if (s === undefined) return key;
+    if (vars) {
+      Object.keys(vars).forEach(function (k) {
+        s = s.replace(new RegExp("\\{" + k + "\\}", "g"), vars[k]);
+      });
+    }
+    return s;
+  }
+
+  function locale() { return state.lang === "sv" ? "sv-SE" : "en-US"; }
+
+  // chat titles are saved as data, so the stock one is translated on display
+  function displayTitle(title) {
+    return (title === "New chat" || title === "Ny chatt") ? t("newChatTitle") : title;
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = state.lang;
+
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+      el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+      el.title = t(el.dataset.i18nTitle);
+    });
+
+    const rec = $("recommendedModel");
+    if (rec) rec.textContent = "gemini-3.5-flash — " + t("recommended");
+
+    buildModeSelectors();
+    buildQuickActions();
+    applyIdentity();
+    renderChatList();
+    renderThread();
+  }
+
+  /* =====================================================================
+     QUICK ACTIONS
+     Each one drops a framing line into the composer and leaves the caret
+     after it, so you can keep typing or paste straight in.
+     ===================================================================== */
+
+  const QUICK_ACTIONS = [
+    { id: "explain",   emoji: "💡",
+      en: { label: "Explain",   prompt: "Explain this clearly and simply:\n\n" },
+      sv: { label: "Förklara",  prompt: "Förklara det här tydligt och enkelt:\n\n" } },
+    { id: "summarize", emoji: "📝",
+      en: { label: "Summarize", prompt: "Summarize the key points of this:\n\n" },
+      sv: { label: "Sammanfatta", prompt: "Sammanfatta de viktigaste punkterna i det här:\n\n" } },
+    { id: "code",      emoji: "💻",
+      en: { label: "Code",      prompt: "Write code that does the following:\n\n" },
+      sv: { label: "Kod",       prompt: "Skriv kod som gör följande:\n\n" } },
+    { id: "translate", emoji: "🌐",
+      en: { label: "Translate", prompt: "Translate the following text into English:\n\n" },
+      sv: { label: "Översätt",  prompt: "Översätt följande text till svenska:\n\n" } },
+    { id: "improve",   emoji: "✨",
+      en: { label: "Improve",   prompt: "Improve the wording and flow of this, keeping my meaning:\n\n" },
+      sv: { label: "Förbättra", prompt: "Förbättra formuleringen och flytet i det här, men behåll min innebörd:\n\n" } }
+  ];
+
+  function buildQuickActions() {
+    const wrap = $("quickActions");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    const lang = LANGS.indexOf(state.lang) !== -1 ? state.lang : "en";
+
+    QUICK_ACTIONS.forEach(function (qa) {
+      const conf = qa[lang];
+      const btn = document.createElement("button");
+      btn.className = "qa";
+      btn.type = "button";
+      btn.title = conf.label;
+
+      const em = document.createElement("span");
+      em.className = "qa-emoji";
+      em.textContent = qa.emoji;
+
+      const lab = document.createElement("span");
+      lab.textContent = conf.label;
+
+      btn.appendChild(em);
+      btn.appendChild(lab);
+      btn.addEventListener("click", function () { applyQuickAction(conf.prompt); });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function applyQuickAction(prompt) {
+    if (busy) { toast(t("toastWaitReply")); return; }
+    const current = messageInput.value;
+    // already framed by this action? then it is a toggle-free no-op on the text
+    messageInput.value = current.indexOf(prompt) === 0 ? current : prompt + current;
+    autoResize();
+    sendBtn.disabled = !messageInput.value.trim();
+    messageInput.focus();
+    const end = messageInput.value.length;
+    messageInput.setSelectionRange(end, end);
+    messageInput.scrollTop = messageInput.scrollHeight;
+  }
+
+  /* =====================================================================
+     STARTER SUGGESTIONS
+     A deep pool, four on screen, reshuffled on a timer.
+     ===================================================================== */
+
+  const STARTER_POOL = {
+    en: [
+      "Explain a hard idea in plain language",
+      "Help me write and polish an email",
+      "Find the bug in some code I'll paste",
+      "Plan my week around three priorities",
+      "Turn these messy notes into an outline",
+      "Give me five names for a side project",
+      "Explain this error message to me",
+      "Draft a polite way to say no",
+      "Compare two options and weigh them up",
+      "Make a packing list for a weekend trip",
+      "Rewrite this paragraph to be shorter",
+      "Quiz me on something I'm studying",
+      "Suggest dinner from what's in my fridge",
+      "Explain how a regex works, piece by piece",
+      "Write a SQL query for a report I need",
+      "Help me prepare for a tough conversation",
+      "Break a big task into small first steps",
+      "Come up with a gift idea for a friend",
+      "Summarize an article I'll paste in",
+      "Turn this idea into a clear one-pager",
+      "Explain the trade-offs of a design choice",
+      "Write test cases for a function",
+      "Plan a simple workout for this week",
+      "Give me a reading list on a topic",
+      "Help me name things in my codebase",
+      "Draft an agenda for a 30-minute meeting"
+    ],
+    sv: [
+      "Förklara en svår idé på enkel svenska",
+      "Hjälp mig skriva och putsa ett mejl",
+      "Hitta buggen i kod som jag klistrar in",
+      "Planera min vecka kring tre prioriteringar",
+      "Gör en disposition av mina röriga anteckningar",
+      "Ge mig fem namnförslag till ett sidoprojekt",
+      "Förklara det här felmeddelandet för mig",
+      "Formulera ett vänligt sätt att säga nej",
+      "Jämför två alternativ och väg dem mot varandra",
+      "Gör en packlista för en helgresa",
+      "Skriv om det här stycket så att det blir kortare",
+      "Förhör mig på något jag pluggar",
+      "Föreslå middag utifrån det jag har i kylen",
+      "Förklara hur ett regex fungerar, steg för steg",
+      "Skriv en SQL-fråga till en rapport jag behöver",
+      "Hjälp mig förbereda ett svårt samtal",
+      "Dela upp en stor uppgift i små första steg",
+      "Kom med ett presenttips till en vän",
+      "Sammanfatta en artikel som jag klistrar in",
+      "Gör den här idén till ett tydligt en-sidesunderlag",
+      "Förklara för- och nackdelar med ett designval",
+      "Skriv testfall för en funktion",
+      "Planera ett enkelt träningspass för veckan",
+      "Ge mig en läslista om ett ämne",
+      "Hjälp mig namnge saker i min kodbas",
+      "Skriv en agenda för ett 30-minutersmöte"
+    ]
+  };
+
+  const STARTERS_ON_SCREEN = 4;
+  const STARTER_ROTATE_MS = 5000;
+  let starterTimer = null;
+  let starterCursor = 0;
+  let starterOrder = [];
+
+  function shuffle(list) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function nextStarters() {
+    const pool = STARTER_POOL[LANGS.indexOf(state.lang) !== -1 ? state.lang : "en"];
+    if (!starterOrder.length || starterCursor + STARTERS_ON_SCREEN > starterOrder.length) {
+      starterOrder = shuffle(pool);
+      starterCursor = 0;
+    }
+    const slice = starterOrder.slice(starterCursor, starterCursor + STARTERS_ON_SCREEN);
+    starterCursor += STARTERS_ON_SCREEN;
+    return slice;
+  }
+
+  function stopStarterRotation() {
+    if (starterTimer) { clearInterval(starterTimer); starterTimer = null; }
+  }
+
+  function paintStarters(grid, items) {
+    grid.innerHTML = "";
+    items.forEach(function (s) {
+      const b = document.createElement("button");
+      b.className = "starter";
+      b.type = "button";
+      b.textContent = s;
+      b.addEventListener("click", function () {
+        messageInput.value = s;
+        autoResize();
+        sendBtn.disabled = false;
+        messageInput.focus();
+      });
+      grid.appendChild(b);
+    });
+  }
+
+  function startStarterRotation(grid) {
+    stopStarterRotation();
+    starterOrder = [];
+    starterCursor = 0;
+    paintStarters(grid, nextStarters());
+
+    starterTimer = setInterval(function () {
+      if (!document.body.contains(grid)) { stopStarterRotation(); return; }
+      if (document.hidden) return;
+      grid.classList.add("swapping");
+      setTimeout(function () {
+        if (!document.body.contains(grid)) { stopStarterRotation(); return; }
+        paintStarters(grid, nextStarters());
+        grid.classList.add("swapping");
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () { grid.classList.remove("swapping"); });
+        });
+      }, 320);
+    }, STARTER_ROTATE_MS);
+  }
+
+  /* =====================================================================
+     THEMES
+     A theme is ten colors. Everything else (hover, code background,
+     readable text on the accent) is derived, which is what lets custom
+     themes run through exactly the same code path as the built-ins.
+     ===================================================================== */
+
+  const COLOR_FIELDS = [
+    { key: "bg",         en: "Background",    sv: "Bakgrund" },
+    { key: "side",       en: "Sidebar",       sv: "Sidofält" },
+    { key: "panel",      en: "Panels",        sv: "Paneler" },
+    { key: "surface",    en: "Inputs",        sv: "Inmatningsfält" },
+    { key: "userBubble", en: "Your messages", sv: "Dina meddelanden" },
+    { key: "accent",     en: "Accent",        sv: "Accentfärg" },
+    { key: "text",       en: "Text",          sv: "Text" },
+    { key: "dim",        en: "Muted text",    sv: "Dämpad text" },
+    { key: "border",     en: "Borders",       sv: "Kantlinjer" },
+    { key: "danger",     en: "Warnings",      sv: "Varningar" }
+  ];
+
+  const BUILTIN_THEMES = [
+    /* "Julmust" is the SERVER'S OWN look - the exact palette of index.html:
+       soda red #ff1f3d on the same near-black panels, lines and text. It is
+       first in the list, so it is also the fallback/default theme. */
+    { id: "soda",      label: "Cherry Cola", colors: { bg:"#0a0507", side:"#120709", panel:"#160a0e", surface:"#1c0d12", userBubble:"#3a0f18", accent:"#f2303f", text:"#fff4ee", dim:"#c4a3a5", border:"#3d1a22", danger:"#ff9a5c" } },
+    { id: "julmust",   label: "Julmust",  colors: { bg:"#08080b", side:"#0e0e13", panel:"#141419", surface:"#0b0b0f", userBubble:"#2b0d12", accent:"#ff1f3d", text:"#f4f4f6", dim:"#8b8b99", border:"#26262e", danger:"#ff5468" } },
+    { id: "midnight",  label: "Midnight",  colors: { bg:"#0e1116", side:"#0a0d12", panel:"#141821", surface:"#1b202b", userBubble:"#263243", accent:"#5fb3a3", text:"#e7e9ee", dim:"#8b93a3", border:"#222736", danger:"#d5705e" } },
+    { id: "nord",      label: "Nord",      colors: { bg:"#2e3440", side:"#282e39", panel:"#343b4a", surface:"#3b4252", userBubble:"#434c5e", accent:"#88c0d0", text:"#eceff4", dim:"#98a3b3", border:"#3f4859", danger:"#bf616a" } },
+    { id: "dracula",   label: "Dracula",   colors: { bg:"#282a36", side:"#222430", panel:"#2f313f", surface:"#383b4b", userBubble:"#453a5f", accent:"#bd93f9", text:"#f8f8f2", dim:"#9aa0b3", border:"#3b3e4f", danger:"#ff5555" } },
+    { id: "solarized", label: "Solarized", colors: { bg:"#002b36", side:"#00242e", panel:"#073642", surface:"#0b3f4c", userBubble:"#12505c", accent:"#b58900", text:"#eee8d5", dim:"#7d9298", border:"#0e4653", danger:"#dc322f" } },
+    { id: "forest",    label: "Forest",    colors: { bg:"#101810", side:"#0c130c", panel:"#162115", surface:"#1d2a1b", userBubble:"#2c4028", accent:"#8fbc5a", text:"#e6ecdf", dim:"#8d9b83", border:"#243220", danger:"#cf6b4d" } },
+    { id: "ember",     label: "Ember",     colors: { bg:"#1a1218", side:"#150e13", panel:"#221820", surface:"#2c1f29", userBubble:"#452b3c", accent:"#ff9770", text:"#f5e9ef", dim:"#a68f9c", border:"#332530", danger:"#e05263" } },
+    { id: "ocean",     label: "Ocean",     colors: { bg:"#0a1824", side:"#07121c", panel:"#0f2132", surface:"#152c41", userBubble:"#1c4160", accent:"#4cc3e0", text:"#e2eef7", dim:"#85a0b8", border:"#173047", danger:"#e2666a" } },
+    { id: "graphite",  label: "Graphite",  colors: { bg:"#0f0f0f", side:"#0a0a0a", panel:"#161616", surface:"#1e1e1e", userBubble:"#2b2b2b", accent:"#d8d8d8", text:"#ededed", dim:"#888888", border:"#252525", danger:"#c2685a" } },
+    { id: "grape",     label: "Grape",     colors: { bg:"#13101f", side:"#0f0c19", panel:"#1a1629", surface:"#221d35", userBubble:"#332a52", accent:"#a48bff", text:"#eae7f7", dim:"#9189ad", border:"#272138", danger:"#e2637f" } },
+    { id: "daylight",  label: "Daylight",  colors: { bg:"#ffffff", side:"#f5f6f8", panel:"#fbfbfc", surface:"#eef0f3", userBubble:"#dbe8f5", accent:"#1f7a68", text:"#171a1f", dim:"#6a7280", border:"#e1e4ea", danger:"#c0473a" } },
+    { id: "paper",     label: "Paper",     colors: { bg:"#f8f4ec", side:"#f0eadd", panel:"#fbf8f2", surface:"#ece5d7", userBubble:"#e3d8c2", accent:"#8a5a33", text:"#2b251d", dim:"#7c7263", border:"#e0d7c6", danger:"#a8422f" } },
+    { id: "mint",      label: "Mint",      colors: { bg:"#f4f8f6", side:"#e9f0ec", panel:"#fbfdfc", surface:"#e2ebe6", userBubble:"#d3e6dc", accent:"#0f766e", text:"#16201c", dim:"#657a71", border:"#dce6e0", danger:"#b1483b" } }
+  ];
+
+  function hex2rgb(h) {
+    h = (h || "#000000").replace("#", "");
+    if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  function rgb2hex(r, g, b) {
+    return "#" + [r,g,b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2,"0")).join("");
+  }
+  function mix(a, b, t) {
+    const A = hex2rgb(a), B = hex2rgb(b);
+    return rgb2hex(A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, A[2]+(B[2]-A[2])*t);
+  }
+  function luminance(h) {
+    const parts = hex2rgb(h).map(v => {
+      v /= 255;
+      return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+    });
+    return 0.2126*parts[0] + 0.7152*parts[1] + 0.0722*parts[2];
+  }
+  function rgba(h, a) {
+    const c = hex2rgb(h);
+    return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+  }
+
+  function applyTheme(theme) {
+    const c = theme.colors;
+    const dark = luminance(c.bg) < 0.4;
+    const root = document.documentElement.style;
+
+    root.setProperty("--bg", c.bg);
+    root.setProperty("--side", c.side);
+    root.setProperty("--panel", c.panel);
+    root.setProperty("--surface", c.surface);
+    root.setProperty("--user-bubble", c.userBubble);
+    root.setProperty("--accent", c.accent);
+    root.setProperty("--text", c.text);
+    root.setProperty("--text-dim", c.dim);
+    root.setProperty("--border", c.border);
+    root.setProperty("--danger", c.danger);
+
+    root.setProperty("--on-accent", luminance(c.accent) > 0.5 ? "#0a0a0a" : "#ffffff");
+    root.setProperty("--accent-soft", rgba(c.accent, dark ? 0.25 : 0.2));
+    root.setProperty("--hover", mix(c.side, c.text, dark ? 0.08 : 0.06));
+    root.setProperty("--code-bg", rgba("#000000", dark ? 0.32 : 0.05));
+    root.setProperty("--shadow", rgba("#000000", dark ? 0.55 : 0.14));
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+
+    if (theme.id !== "__draft") {
+      state.themeId = theme.id;
+      save();
+    }
+    $("footSwatch").style.background = c.accent;
+    $("footThemeName").textContent = theme.label;
+    paintThemeGrids();
+  }
+
+  function allThemes() { return BUILTIN_THEMES.concat(state.customThemes); }
+  function themeById(id) { return allThemes().filter(t => t.id === id)[0] || BUILTIN_THEMES[0]; }
+
+  /* =====================================================================
+     STATE
+     ===================================================================== */
+
+  const KEY = "aichat.v2";
+
+  const defaults = {
+    chats: [],
+    activeId: null,
+    themeId: "soda",
+    customThemes: [],
+    aiName: "Mustiga Mannen",
+    systemPrompt: "You are a helpful, friendly assistant.",
+    showTime: true,
+    lang: "en",
+    folders: [],
+    mode: "general",
+    effort: "quick",
+    web: false,
+    useCustomKey: false,
+    customApiKey: ""
+  };
+
+  let state = (function () {
+    let s;
+    try {
+      const raw = localStorage.getItem(KEY);
+      s = raw ? Object.assign({}, defaults, JSON.parse(raw)) : Object.assign({}, defaults);
+    } catch (e) { s = Object.assign({}, defaults); }
+    /* Julmust rebrand: anyone still carrying the old defaults gets the new
+       name and theme once. A name or theme the user picked deliberately is
+       left alone. (applyTheme() persists the theme; the name rides along
+       with the next ordinary save.) */
+    if (s.aiName === "JARVIS") s.aiName = "Mustiga Mannen";
+    if (s.themeId === "midnight") s.themeId = "julmust";
+    /* Cherry Cola skin: everyone moves to the new default once; any theme picked afterwards sticks. */
+    if (!s.sodaSkin) { if (s.themeId === "julmust") s.themeId = "soda"; s.sodaSkin = true; }
+    return s;
+  })();
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); return; }
+    catch (e) { /* likely quota */ }
+
+    // Attachment blobs are what fills the 5 MB box. Drop the oldest ones
+    // (keeping the file's name and any extracted text) and try again.
+    if (!pruneAttachments()) return;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); toast(t("storageFull")); }
+    catch (e2) { /* nothing more we can do */ }
+  }
+
+  function pruneAttachments() {
+    let pruned = false;
+    const ordered = state.chats.slice().sort(function (a, b) { return a.updated - b.updated; });
+    for (let c = 0; c < ordered.length; c++) {
+      const chat = ordered[c];
+      if (chat.id === state.activeId && c === ordered.length - 1) continue;
+      walkMessages(chat, function (m) {
+        if (!m.files) return;
+        m.files.forEach(function (f) {
+          if (f.data) { f.data = null; f.dropped = true; pruned = true; }
+        });
+      });
+      if (pruned) break;
+    }
+    return pruned;
+  }
+
+  // visits every message on every branch of a chat
+  function walkMessages(chat, fn) {
+    (function visit(list) {
+      list.forEach(function (m) {
+        fn(m);
+        if (m.variants) m.variants.forEach(function (v) { if (v.tail) visit(v.tail); });
+      });
+    })(chat.messages || []);
+  }
+
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function activeChat() { return state.chats.filter(c => c.id === state.activeId)[0] || null; }
+
+  function createChat() {
+    const chat = {
+      id: newId(), title: "New chat", model: modelSelect.value,
+      mode: state.mode, effort: state.effort, web: !!state.web,
+      folderId: null, pinned: false,
+      messages: [], created: Date.now(), updated: Date.now()
+    };
+    state.chats.unshift(chat);
+    state.activeId = chat.id;
+    save();
+    return chat;
+  }
+
+  function touch(chat) {
+    chat.updated = Date.now();
+    state.chats.sort((a,b) => b.updated - a.updated);
+    save();
+  }
+
+  /* =====================================================================
+     ASSISTANT MODES + EFFORT
+     A mode and an effort level each append a paragraph to the system
+     instruction. Nothing else about the request changes, so any model
+     works with any combination.
+     ===================================================================== */
+
+  const MODES = [
+    { id: "general", key: "modeGeneral", prompt: "" },
+    { id: "coding", key: "modeCoding", prompt:
+      "You are an expert programming assistant. Prefer complete, working, runnable examples over fragments. " +
+      "Always state the language on the opening fence of every code block. Point out edge cases, likely bugs and " +
+      "performance traps. When you fix code, show the corrected version in full rather than describing the change." },
+    { id: "study", key: "modeStudy", prompt:
+      "You are a patient tutor. Build from what the learner already knows, use small concrete examples and analogies, " +
+      "and check understanding with a short question at the end. Never just hand over the answer to a problem they are " +
+      "clearly working through — walk them to it." },
+    { id: "research", key: "modeResearch", prompt:
+      "You are a research assistant. Be precise about what is established versus contested, name the strongest " +
+      "counterarguments, and flag anything you are uncertain about instead of smoothing it over. Prefer specifics, " +
+      "dates and figures over generalities." },
+    { id: "writing", key: "modeWriting", prompt:
+      "You are an editor and writing partner. Match the register the user is writing in. Prefer plain, concrete " +
+      "language and short sentences. When you revise, keep the author's meaning and voice, and briefly say what you " +
+      "changed and why." },
+    { id: "gaming", key: "modeGaming", prompt:
+      "You are a knowledgeable gaming companion. Give practical build advice, strategies and walkthrough steps. " +
+      "Warn before major story spoilers. Be specific about stats, items and versions/patches where they matter." },
+    { id: "reasoning", key: "modeReasoning", prompt:
+      "Work through the problem carefully before answering. Lay out the steps of your reasoning, check your own work, " +
+      "and say plainly when a question is underspecified or when you are unsure." },
+    { id: "quick", key: "modeQuick", prompt:
+      "Answer as briefly as the question allows. No preamble, no restating the question, no caveats unless they " +
+      "genuinely change the answer. One or two sentences whenever that is enough." }
+  ];
+
+  const EFFORTS = [
+    { id: "quick", key: "effortQuick", prompt: "", temp: 0.9 },
+    { id: "think", key: "effortThink", temp: 0.6, prompt:
+      "Take your time with this one. Consider more than one approach before you commit, sanity-check your conclusion, " +
+      "and surface the assumptions it rests on." },
+    { id: "deep", key: "effortDeep", temp: 0.4, forceWeb: true, prompt:
+      "Treat this as a research task. Gather the relevant facts first, weigh sources against each other, note where " +
+      "they disagree, and end with a clear, structured answer plus what would change your mind." }
+  ];
+
+  function modeById(id) { return MODES.filter(m => m.id === id)[0] || MODES[0]; }
+  function effortById(id) { return EFFORTS.filter(m => m.id === id)[0] || EFFORTS[0]; }
+
+  function buildModeSelectors() {
+    modeSelect.innerHTML = "";
+    MODES.forEach(function (m) {
+      const o = document.createElement("option");
+      o.value = m.id;
+      o.textContent = t(m.key);
+      modeSelect.appendChild(o);
+    });
+    effortSelect.innerHTML = "";
+    EFFORTS.forEach(function (m) {
+      const o = document.createElement("option");
+      o.value = m.id;
+      o.textContent = t(m.key);
+      effortSelect.appendChild(o);
+    });
+    syncComposerControls();
+  }
+
+  function syncComposerControls() {
+    const chat = activeChat();
+    const mode = (chat && chat.mode) || state.mode;
+    const effort = (chat && chat.effort) || state.effort;
+    const web = chat ? !!chat.web : !!state.web;
+    modeSelect.value = modeById(mode).id;
+    effortSelect.value = effortById(effort).id;
+    webBtn.classList.toggle("on", web || effortById(effort).forceWeb);
+  }
+
+  function webEnabled(chat) {
+    return !!(chat && chat.web) || effortById((chat && chat.effort) || state.effort).forceWeb;
+  }
+
+  /* =====================================================================
+     ATTACHMENTS
+     Images and PDFs go to the model as inline base64. Text-shaped files
+     (code, .txt, .csv, .docx) are extracted to text here and fenced into
+     the prompt, which keeps them readable by every model.
+     ===================================================================== */
+
+  const MAX_FILE_MB = 12;
+  const TEXT_EXT = ["txt","md","markdown","js","mjs","cjs","ts","tsx","jsx","html","htm","css","scss","py","json",
+                    "csv","tsv","xml","yml","yaml","java","c","h","cpp","cc","hpp","cs","go","rb","rs","php","sh",
+                    "bash","zsh","sql","log","ini","toml","env","conf","vue","svelte","kt","swift","r","pl","lua"];
+
+  let pending = [];   // attachments staged in the composer
+
+  function extOf(name) {
+    const m = /\.([a-z0-9]+)$/i.exec(name || "");
+    return m ? m[1].toLowerCase() : "";
+  }
+
+  function prettySize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  function fileEmoji(f) {
+    if (f.kind === "image") return "🖼️";
+    if (f.mime === "application/pdf") return "📕";
+    if (extOf(f.name) === "docx") return "📄";
+    return "📃";
+  }
+
+  function toBase64(file) {
+    return new Promise(function (resolve, reject) {
+      const r = new FileReader();
+      r.onload = function () { resolve(String(r.result).split(",")[1]); };
+      r.onerror = function () { reject(new Error("read")); };
+      r.readAsDataURL(file);
+    });
+  }
+
+  // Minimal DOCX reader: a .docx is a zip, and the text lives in
+  // word/document.xml. DecompressionStream does the inflating, so this
+  // needs no library.
+  async function docxToText(file) {
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const dv = new DataView(buf.buffer);
+    const dec = new TextDecoder();
+
+    let eocd = -1;
+    for (let i = buf.length - 22; i >= 0 && i > buf.length - 66000; i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error("not a zip");
+
+    const count = dv.getUint16(eocd + 10, true);
+    let off = dv.getUint32(eocd + 16, true);
+
+    for (let i = 0; i < count; i++) {
+      const method = dv.getUint16(off + 10, true);
+      const compSize = dv.getUint32(off + 20, true);
+      const nameLen = dv.getUint16(off + 28, true);
+      const extraLen = dv.getUint16(off + 30, true);
+      const cmtLen = dv.getUint16(off + 32, true);
+      const localOff = dv.getUint32(off + 42, true);
+      const name = dec.decode(buf.subarray(off + 46, off + 46 + nameLen));
+
+      if (name === "word/document.xml") {
+        const lnLen = dv.getUint16(localOff + 26, true);
+        const leLen = dv.getUint16(localOff + 28, true);
+        const start = localOff + 30 + lnLen + leLen;
+        const raw = buf.subarray(start, start + compSize);
+
+        let bytes = raw;
+        if (method !== 0) {
+          const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+          bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+        }
+        return dec.decode(bytes)
+          .replace(/<w:tab[^>]*\/>/g, "\t")
+          .replace(/<\/w:p>/g, "\n")
+          .replace(/<w:br[^>]*\/>/g, "\n")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+      }
+      off += 46 + nameLen + extraLen + cmtLen;
+    }
+    throw new Error("no document.xml");
+  }
+
+  async function readAttachment(file) {
+    if (file.size > MAX_FILE_MB * 1048576) {
+      throw new Error(t("fileTooBig", { name: file.name, max: MAX_FILE_MB }));
+    }
+    const ext = extOf(file.name);
+    const mime = file.type || "";
+
+    if (mime.indexOf("image/") === 0) {
+      return { name: file.name, mime: mime, size: file.size, kind: "image", data: await toBase64(file) };
+    }
+    if (mime === "application/pdf" || ext === "pdf") {
+      return { name: file.name, mime: "application/pdf", size: file.size, kind: "media", data: await toBase64(file) };
+    }
+    if (ext === "docx") {
+      return { name: file.name, mime: mime, size: file.size, kind: "text", text: await docxToText(file) };
+    }
+    if (mime.indexOf("text/") === 0 || TEXT_EXT.indexOf(ext) !== -1 || !mime) {
+      return { name: file.name, mime: mime || "text/plain", size: file.size, kind: "text", text: await file.text() };
+    }
+    throw new Error(t("fileUnsupported", { name: file.name }));
+  }
+
+  async function addFiles(list) {
+    const files = Array.prototype.slice.call(list || []);
+    for (let i = 0; i < files.length; i++) {
+      const placeholder = { name: files[i].name, size: files[i].size, kind: "text", loading: true };
+      pending.push(placeholder);
+      renderAttachRow();
+      try {
+        const att = await readAttachment(files[i]);
+        pending[pending.indexOf(placeholder)] = att;
+      } catch (err) {
+        pending = pending.filter(function (p) { return p !== placeholder; });
+        toast(err.message || t("fileUnsupported", { name: files[i].name }));
+      }
+      renderAttachRow();
+    }
+    sendBtn.disabled = busy || (!messageInput.value.trim() && !pending.length);
+    messageInput.focus();
+  }
+
+  function renderAttachRow() {
+    attachRow.innerHTML = "";
+    attachRow.classList.toggle("show", pending.length > 0);
+    pending.forEach(function (f, i) {
+      attachRow.appendChild(chipFor(f, function () {
+        pending.splice(i, 1);
+        renderAttachRow();
+        sendBtn.disabled = busy || (!messageInput.value.trim() && !pending.length);
+      }));
+    });
+  }
+
+  function chipFor(f, onRemove) {
+    const chip = document.createElement("div");
+    chip.className = "chip" + (f.loading ? " busy" : "");
+
+    if (f.kind === "image" && f.data) {
+      const img = document.createElement("img");
+      img.className = "thumb";
+      img.src = "data:" + f.mime + ";base64," + f.data;
+      img.alt = f.name;
+      chip.appendChild(img);
+    } else {
+      const ic = document.createElement("div");
+      ic.className = "ic";
+      ic.textContent = f.loading ? "⏳" : fileEmoji(f);
+      chip.appendChild(ic);
+    }
+
+    const txt = document.createElement("div");
+    txt.className = "txt";
+    const nm = document.createElement("div");
+    nm.className = "nm";
+    nm.textContent = f.name;
+    const sz = document.createElement("div");
+    sz.className = "sz";
+    sz.textContent = f.loading ? t("readingFile")
+      : prettySize(f.size || 0) + (f.dropped ? " · ⚠︎" : "");
+    txt.appendChild(nm);
+    txt.appendChild(sz);
+    chip.appendChild(txt);
+
+    if (onRemove) {
+      const x = document.createElement("button");
+      x.className = "x";
+      x.type = "button";
+      x.innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      x.addEventListener("click", onRemove);
+      chip.appendChild(x);
+    }
+    return chip;
+  }
+
+  /* =====================================================================
+     BRANCHING
+     A message keeps its alternative versions on itself. Each version owns
+     the replies that followed it, so switching versions swaps in a whole
+     different continuation instead of throwing one away.
+     ===================================================================== */
+
+  function snapshot(chat, i) {
+    const m = chat.messages[i];
+    return {
+      text: m.text, ts: m.ts, files: m.files, sources: m.sources,
+      error: m.error, stopped: m.stopped,
+      tail: chat.messages.slice(i + 1)
+    };
+  }
+
+  function ensureVariants(chat, i) {
+    const m = chat.messages[i];
+    if (!m.variants) { m.variants = [snapshot(chat, i)]; m.vi = 0; }
+    return m;
+  }
+
+  function commitVariant(chat, i) {
+    const m = chat.messages[i];
+    if (m.variants) m.variants[m.vi] = snapshot(chat, i);
+  }
+
+  function applyVariant(chat, i, vi) {
+    const m = chat.messages[i];
+    const v = m.variants[vi];
+    m.vi = vi;
+    m.text = v.text; m.ts = v.ts;
+    m.files = v.files; m.sources = v.sources;
+    m.error = v.error; m.stopped = v.stopped;
+    chat.messages.length = i + 1;
+    (v.tail || []).forEach(function (x) { chat.messages.push(x); });
+  }
+
+  // start a fresh version of message i and cut everything after it loose
+  function forkAt(chat, i, data) {
+    ensureVariants(chat, i);
+    commitVariant(chat, i);
+    const m = chat.messages[i];
+    m.variants.push(Object.assign({ text: "", ts: Date.now(), tail: [] }, data));
+    applyVariant(chat, i, m.variants.length - 1);
+    return m;
+  }
+
+  function switchVariant(chat, i, dir) {
+    if (busy) { toast(t("toastWaitReply")); return; }
+    const m = chat.messages[i];
+    if (!m.variants || m.variants.length < 2) return;
+    const next = m.vi + dir;
+    if (next < 0 || next >= m.variants.length) return;
+    commitVariant(chat, i);
+    applyVariant(chat, i, next);
+    touch(chat);
+    renderThread();
+    renderChatList();
+  }
+
+  function branchNav(chat, msg, index) {
+    const wrap = document.createElement("span");
+    wrap.className = "branch";
+
+    const prev = document.createElement("button");
+    prev.type = "button";
+    prev.textContent = "‹";
+    prev.title = t("prevBranch");
+    prev.disabled = msg.vi === 0;
+    prev.addEventListener("click", function () { switchVariant(chat, index, -1); });
+
+    const label = document.createElement("span");
+    label.className = "n";
+    label.textContent = (msg.vi + 1) + "/" + msg.variants.length;
+    label.title = t("branchOf", { i: msg.vi + 1, n: msg.variants.length });
+
+    const next = document.createElement("button");
+    next.type = "button";
+    next.textContent = "›";
+    next.title = t("nextBranch");
+    next.disabled = msg.vi === msg.variants.length - 1;
+    next.addEventListener("click", function () { switchVariant(chat, index, 1); });
+
+    wrap.appendChild(prev); wrap.appendChild(label); wrap.appendChild(next);
+    return wrap;
+  }
+
+  /* =====================================================================
+     VOICE: speech in, speech out
+     ===================================================================== */
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recog = null, recording = false, recogBase = "";
+
+  function toggleMic() {
+    if (!SR) { toast(t("micUnsupported")); return; }
+    if (recording) { try { recog.stop(); } catch (e) {} return; }
+
+    recog = new SR();
+    recog.lang = state.lang === "sv" ? "sv-SE" : "en-US";
+    recog.continuous = true;
+    recog.interimResults = true;
+    recogBase = messageInput.value ? messageInput.value.replace(/\s*$/, " ") : "";
+
+    recog.onstart = function () {
+      recording = true;
+      micBtn.classList.add("rec");
+      toast(t("listening"));
+    };
+    recog.onresult = function (e) {
+      let text = "";
+      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+      messageInput.value = recogBase + text;
+      autoResize();
+      sendBtn.disabled = busy || (!messageInput.value.trim() && !pending.length);
+    };
+    recog.onerror = function (e) {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") toast(t("micDenied"));
+    };
+    recog.onend = function () {
+      recording = false;
+      micBtn.classList.remove("rec");
+      messageInput.focus();
+    };
+    try { recog.start(); } catch (e) { toast(t("micUnsupported")); }
+  }
+
+  let speakingBtn = null;
+
+  function plainText(md) {
+    return String(md)
+      .replace(/```[\s\S]*?```/g, ". ")
+      .replace(/`([^`]*)`/g, "$1")
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/^#{1,6}\s*/gm, "")
+      .replace(/[*_~>]/g, "")
+      .replace(/\n{2,}/g, ". ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function stopSpeaking() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (speakingBtn) {
+      speakingBtn.classList.remove("speaking");
+      const lbl = speakingBtn.querySelector("span");
+      if (lbl) lbl.textContent = t("readAloud");
+      speakingBtn = null;
+    }
+  }
+
+  function readAloud(text, btn) {
+    if (!window.speechSynthesis) { toast(t("ttsUnsupported")); return; }
+    if (speakingBtn === btn) { stopSpeaking(); return; }
+    stopSpeaking();
+
+    const u = new SpeechSynthesisUtterance(plainText(text));
+    u.lang = state.lang === "sv" ? "sv-SE" : "en-US";
+    u.rate = 1.02;
+    u.onend = stopSpeaking;
+    u.onerror = stopSpeaking;
+
+    speakingBtn = btn;
+    btn.classList.add("speaking");
+    const lbl = btn.querySelector("span");
+    if (lbl) lbl.textContent = t("stopReading");
+    window.speechSynthesis.speak(u);
+  }
+
+  /* =====================================================================
+     FOLDERS
+     ===================================================================== */
+
+  function folderById(id) { return state.folders.filter(f => f.id === id)[0] || null; }
+
+  function createFolder() {
+    const name = window.prompt(t("folderNamePrompt"), "");
+    if (!name || !name.trim()) return;
+    state.folders.push({ id: "f_" + newId(), name: name.trim(), closed: false });
+    save();
+    renderChatList();
+  }
+
+  function moveChat(chat, folderId) {
+    chat.folderId = folderId;
+    save();
+    renderChatList();
+    const f = folderById(folderId);
+    toast(f ? t("movedTo", { name: f.name }) : t("removedFromFolder"));
+  }
+
+  function pickFolder(chat) {
+    const names = state.folders.map(function (f, i) { return (i + 1) + ") " + f.name; }).join("\n");
+    const raw = window.prompt(
+      t("moveToFolder") + "\n" + (names || "—") + "\n0) " + t("noFolder"),
+      chat.folderId ? String(state.folders.map(f => f.id).indexOf(chat.folderId) + 1) : "0"
+    );
+    if (raw === null) return;
+    const n = parseInt(raw, 10);
+    if (isNaN(n) || n < 0 || n > state.folders.length) return;
+    moveChat(chat, n === 0 ? null : state.folders[n - 1].id);
+  }
+
+  function togglePin(chat) {
+    chat.pinned = !chat.pinned;
+    save();
+    renderChatList();
+  }
+
+  /* =====================================================================
+     TIME
+     ===================================================================== */
+
+  function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+  function dayGap(ts) { return Math.round((startOfDay(Date.now()) - startOfDay(ts)) / 86400000); }
+
+  function clockTime(ts) {
+    return new Date(ts).toLocaleTimeString(locale(), { hour: "numeric", minute: "2-digit" });
+  }
+  function shortDate(ts) {
+    return new Date(ts).toLocaleDateString(locale(), { month: "short", day: "numeric" });
+  }
+
+  function relativeTime(ts) {
+    const mins = Math.floor((Date.now() - ts) / 60000);
+    if (mins < 1) return t("justNow");
+    if (mins < 60) return t("minsAgo", { n: mins });
+    const days = dayGap(ts);
+    if (days === 0) return clockTime(ts);
+    if (days === 1) return t("yesterdayLower");
+    if (days < 7) return t("daysAgo", { n: days });
+    return shortDate(ts);
+  }
+
+  function fullTime(ts) {
+    const days = dayGap(ts);
+    const clock = clockTime(ts);
+    if (days === 0) return clock;
+    if (days === 1) return t("yesterday") + " " + clock;
+    return shortDate(ts) + ", " + clock;
+  }
+
+  function groupOf(ts) {
+    const days = dayGap(ts);
+    if (days === 0) return t("today");
+    if (days === 1) return t("yesterday");
+    if (days < 7) return t("prev7");
+    if (days < 30) return t("prev30");
+    return t("older");
+  }
+
+  /* =====================================================================
+     MARKDOWN
+     ===================================================================== */
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+                    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  function renderMarkdown(raw) {
+    let text = escapeHtml(raw);
+    const blocks = [];
+
+    text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, function (m, lang, code) {
+      blocks.push(codeBlockHtml(lang, code.replace(/\n$/, ""), true));
+      return "\u0000B" + (blocks.length-1) + "\u0000";
+    });
+    // an unclosed fence, which happens mid-stream
+    text = text.replace(/```(\w*)\n?([\s\S]*)$/, function (m, lang, code) {
+      blocks.push(codeBlockHtml(lang, code, false));
+      return "\u0000B" + (blocks.length-1) + "\u0000";
+    });
+
+    text = text.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+    text = text.replace(/\*\*([^\*\n]+)\*\*/g, "<strong>$1</strong>");
+    text = text.replace(/__([^_\n]+)__/g, "<strong>$1</strong>");
+    text = text.replace(/(^|[^\*])\*([^\*\n]+)\*/g, "$1<em>$2</em>");
+    text = text.replace(/(^|[^a-zA-Z0-9_])_([^_\n]+)_(?![a-zA-Z0-9])/g, "$1<em>$2</em>");
+    text = text.replace(/~~([^~\n]+)~~/g, "<del>$1</del>");
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    text = text.replace(/^(?:&gt; ?)(.*)$/gm, "\u0001Q$1");
+    text = text.replace(/^#{4,6} (.*)$/gm, "<h3>$1</h3>");
+    text = text.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+    text = text.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+    text = text.replace(/^# (.*)$/gm, "<h1>$1</h1>");
+    text = text.replace(/^\s*(?:---|\*\*\*|___)\s*$/gm, "<hr>");
+
+    text = text.replace(/(^|\n)((?:\s*[-*+] .*(?:\n|$))+)/g, function (m, lead, block) {
+      const items = block.trim().split("\n").map(function (l) {
+        return "<li>" + l.replace(/^\s*[-*+] /,"") + "</li>";
+      }).join("");
+      return lead + "<ul>" + items + "</ul>";
+    });
+    text = text.replace(/(^|\n)((?:\s*\d+\. .*(?:\n|$))+)/g, function (m, lead, block) {
+      const items = block.trim().split("\n").map(function (l) {
+        return "<li>" + l.replace(/^\s*\d+\. /,"") + "</li>";
+      }).join("");
+      return lead + "<ol>" + items + "</ol>";
+    });
+
+    text = text.replace(/(?:\u0001Q.*(?:\n|$))+/g, function (m) {
+      return "<blockquote>" + m.split("\n").filter(Boolean).map(function (l) {
+        return l.slice(2);
+      }).join("<br>") + "</blockquote>";
+    });
+
+    text = text.split(/\n{2,}/).map(function (b) {
+      const t = b.trim();
+      if (!t) return "";
+      if (/^(<h[1-3]|<ul|<ol|<blockquote|<hr|\u0000B)/.test(t)) return t;
+      return "<p>" + b.replace(/\n/g, "<br>") + "</p>";
+    }).join("");
+
+    text = text.replace(/\u0000B(\d+)\u0000/g, function (m, i) { return blocks[Number(i)]; });
+    return text;
+  }
+
+  /* =====================================================================
+     CODE BLOCKS: copy, download, run
+     ===================================================================== */
+
+  const LANG_EXT = {
+    javascript:"js", js:"js", node:"js", jsx:"jsx", typescript:"ts", ts:"ts", tsx:"tsx",
+    html:"html", xml:"xml", css:"css", scss:"scss", python:"py", py:"py",
+    json:"json", yaml:"yml", yml:"yml", markdown:"md", md:"md", bash:"sh", sh:"sh",
+    shell:"sh", zsh:"sh", sql:"sql", java:"java", c:"c", cpp:"cpp", "c++":"cpp",
+    csharp:"cs", cs:"cs", go:"go", rust:"rs", rs:"rs", ruby:"rb", rb:"rb",
+    php:"php", swift:"swift", kotlin:"kt", r:"r", lua:"lua", toml:"toml", ini:"ini",
+    csv:"csv", diff:"diff", text:"txt", plaintext:"txt"
+  };
+
+  const RUNNABLE = { javascript:1, js:1, node:1, html:1 };
+
+  function codeBlockHtml(lang, code, closed) {
+    const l = String(lang || "").toLowerCase();
+    return '<div class="code-block' + (l ? " has-lang" : "") + '" data-lang="' + escapeHtml(l) + '">' +
+           (l ? '<span class="lang">' + escapeHtml(l) + "</span>" : "") +
+           (closed ? '<div class="bar"></div>' : "") +
+           "<pre><code>" + code + "</code></pre></div>";
+  }
+
+  function downloadBlob(filename, text, mime) {
+    const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+
+  // name the file after the first thing that looks like a declaration,
+  // so downloads aren't all called snippet.js
+  // NB: the string splits below are deliberate, and this comment avoids
+  // spelling the sequences out. An HTML comment opener appearing inside an
+  // inline script puts the HTML parser into "script data escaped" state; an
+  // opening script tag after that puts it into "double escaped", where the
+  // closing tag stops working and the whole page renders blank. Keep both
+  // sequences broken up wherever they appear in this file.
+  const HTML_COMMENT_OPEN = "<!" + "--";
+
+  function guessFilename(code, lang) {
+    const ext = LANG_EXT[lang] || (lang && /^[a-z0-9]{1,5}$/.test(lang) ? lang : "txt");
+    const path = new RegExp("(?:^|\\n)\\s*(?:\\/\\/|#|" + HTML_COMMENT_OPEN + ")\\s*([\\w./-]+\\.[a-z0-9]{1,5})", "i").exec(code);
+    if (path) return path[1].split("/").pop();
+    const decl = /(?:function|class|def|const|let|var|interface|struct)\s+([A-Za-z_$][\w$]*)/.exec(code);
+    if (decl) return decl[1] + "." + ext;
+    if (ext === "html") return "page.html";
+    return "snippet." + ext;
+  }
+
+  function mkBtn(label, cls) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    if (cls) b.className = cls;
+    return b;
+  }
+
+  function wireCodeCopy(root) {
+    root.querySelectorAll(".code-block .bar").forEach(function (bar) {
+      if (bar.dataset.wired) return;
+      bar.dataset.wired = "1";
+
+      const block = bar.closest(".code-block");
+      const codeEl = block.querySelector("code");
+      const lang = (block.dataset.lang || "").toLowerCase();
+      const getCode = function () { return codeEl ? codeEl.textContent : ""; };
+
+      const copy = mkBtn(t("copyCode"));
+      copy.addEventListener("click", function () {
+        copyText(getCode());
+        copy.textContent = t("copiedCode");
+        setTimeout(function () { copy.textContent = t("copyCode"); }, 1400);
+      });
+      bar.appendChild(copy);
+
+      const dl = mkBtn("⭳ " + t("download"));
+      dl.addEventListener("click", function () {
+        downloadBlob(guessFilename(getCode(), lang), getCode(),
+          lang === "html" ? "text/html;charset=utf-8" : "text/plain;charset=utf-8");
+      });
+      bar.appendChild(dl);
+
+      if (RUNNABLE[lang]) {
+        const run = mkBtn("▶ " + t("run"), "run");
+        run.addEventListener("click", function () { runCode(block, getCode(), lang); });
+        bar.appendChild(run);
+      }
+    });
+  }
+
+  // Everything runs inside a sandboxed iframe with no same-origin access,
+  // so a snippet can't touch this page, its storage or the network session.
+  function runCode(block, code, lang) {
+    const old = block.querySelector(".run-out");
+    if (old) old.remove();
+
+    const out = document.createElement("div");
+    out.className = "run-out";
+
+    const head = document.createElement("div");
+    head.className = "head";
+    const title = document.createElement("span");
+    title.textContent = lang === "html" ? t("preview") : t("output");
+    const close = document.createElement("button");
+    close.type = "button";
+    close.textContent = t("close");
+    close.addEventListener("click", function () { out.remove(); });
+    head.appendChild(title);
+    head.appendChild(close);
+    out.appendChild(head);
+
+    const frame = document.createElement("iframe");
+    frame.setAttribute("sandbox", "allow-scripts");
+    frame.setAttribute("referrerpolicy", "no-referrer");
+
+    if (lang === "html") {
+      frame.srcdoc = code;
+      out.appendChild(frame);
+      block.appendChild(out);
+      return;
+    }
+
+    const body = document.createElement("div");
+    body.textContent = t("running");
+    out.appendChild(body);
+    block.appendChild(out);
+
+    const token = "run_" + newId();
+    const OPEN = "<scr" + "ipt>";
+    const CLOSE = "</scr" + "ipt>";
+    frame.style.display = "none";
+    frame.srcdoc =
+      OPEN + "(function(){" +
+      "var lines=[];" +
+      "function fmt(v){try{return typeof v==='string'?v:JSON.stringify(v,null,2);}catch(e){return String(v);}}" +
+      "function push(kind,args){lines.push({kind:kind,text:Array.prototype.map.call(args,fmt).join(' ')});}" +
+      "['log','info','warn','debug'].forEach(function(k){console[k]=function(){push('log',arguments);};});" +
+      "console.error=function(){push('err',arguments);};" +
+      "window.onerror=function(m){push('err',[m]);send();return true;};" +
+      "function send(){parent.postMessage({token:" + JSON.stringify(token) + ",lines:lines},'*');}" +
+      "try{\n" + code.split(CLOSE).join("<\\/scr" + "ipt>") + "\n}catch(e){push('err',[e&&e.message||e]);}" +
+      "send();})();" + CLOSE;
+
+    let settled = false;
+    function finish(lines) {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("message", onMsg);
+      frame.remove();
+      body.innerHTML = "";
+      if (!lines || !lines.length) {
+        body.textContent = t("noOutput");
+        return;
+      }
+      lines.forEach(function (l) {
+        const row = document.createElement("div");
+        if (l.kind === "err") row.className = "err";
+        row.textContent = l.text;
+        body.appendChild(row);
+      });
+    }
+
+    function onMsg(e) {
+      if (e.data && e.data.token === token) finish(e.data.lines);
+    }
+    window.addEventListener("message", onMsg);
+    setTimeout(function () { finish(null); }, 5000);
+    out.appendChild(frame);
+  }
+
+  /* =====================================================================
+     UTILITIES
+     ===================================================================== */
+
+  let toastTimer = null;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 1900);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { toast(t("toastCopied")); }, function () { fallbackCopy(text); });
+    } else fallbackCopy(text);
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); toast(t("toastCopied")); }
+    catch (e) { toast(t("toastCopyFail")); }
+    ta.remove();
+  }
+
+  const ICONS = {
+    copy:   '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+    edit:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    redo:   '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>',
+    trash:  '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    pin:    '<path d="M15 3l6 6-3 1-4 4-1 5-6-6 5-1 4-4z"/><path d="M8 16l-4 4"/>',
+    sound:  '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>'
+  };
+  function icon(path) {
+    return '<svg class="icon icon-sm" viewBox="0 0 24 24">' + path + "</svg>";
+  }
+
+  function autoResize() {
+    messageInput.style.height = "auto";
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 210) + "px";
+  }
+
+  function nearBottom() {
+    return chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 140;
+  }
+  function scrollToBottom(force) {
+    if (force || nearBottom()) chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  /* =====================================================================
+     SIDEBAR LIST
+     ===================================================================== */
+
+  let query = "";
+
+  function matchSnippet(chat, q) {
+    for (let i = 0; i < chat.messages.length; i++) {
+      const text = chat.messages[i].text || "";
+      const at = text.toLowerCase().indexOf(q);
+      if (at !== -1) {
+        const start = Math.max(0, at - 24);
+        const raw = (start > 0 ? "…" : "") + text.slice(start, at + q.length + 40).replace(/\s+/g, " ");
+        const k = raw.toLowerCase().indexOf(q);
+        if (k === -1) return escapeHtml(raw);
+        return escapeHtml(raw.slice(0, k)) + "<mark>" + escapeHtml(raw.slice(k, k + q.length)) +
+               "</mark>" + escapeHtml(raw.slice(k + q.length));
+      }
+    }
+    return null;
+  }
+
+  let dragChatId = null;
+
+  function chatItemEl(chat, snippet) {
+    const item = document.createElement("div");
+    item.className = "chat-item" + (chat.id === state.activeId ? " active" : "");
+    item.draggable = true;
+
+    item.addEventListener("dragstart", function (e) {
+      dragChatId = chat.id;
+      item.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", chat.id); } catch (err) { /* older browsers */ }
+    });
+    item.addEventListener("dragend", function () {
+      dragChatId = null;
+      item.classList.remove("dragging");
+    });
+
+    if (chat.pinned) {
+      const p = document.createElement("span");
+      p.className = "pin-ic";
+      p.innerHTML = icon(ICONS.pin);
+      item.appendChild(p);
+    }
+
+    const body = document.createElement("div");
+    body.className = "body";
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = displayTitle(chat.title);
+    body.appendChild(name);
+
+    if (snippet) {
+      const sn = document.createElement("div");
+      sn.className = "snippet";
+      sn.innerHTML = snippet;
+      body.appendChild(sn);
+    } else {
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const n = chat.messages.length;
+      meta.textContent = relativeTime(chat.updated) +
+        (n ? " · " + t(n === 1 ? "msgOne" : "msgMany", { n: n }) : "");
+      body.appendChild(meta);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "chat-actions";
+
+    const pin = document.createElement("button");
+    pin.className = "mini-btn";
+    pin.title = chat.pinned ? t("unpinChat") : t("pinChat");
+    pin.innerHTML = icon(ICONS.pin);
+    pin.addEventListener("click", function (e) { e.stopPropagation(); togglePin(chat); });
+
+    const ren = document.createElement("button");
+    ren.className = "mini-btn";
+    ren.title = t("rename");
+    ren.innerHTML = icon(ICONS.edit);
+    ren.addEventListener("click", function (e) { e.stopPropagation(); inlineRename(chat, body, name); });
+
+    const del = document.createElement("button");
+    del.className = "mini-btn danger";
+    del.title = t("del");
+    del.innerHTML = icon(ICONS.trash);
+    del.addEventListener("click", function (e) { e.stopPropagation(); deleteChat(chat.id); });
+
+    actions.appendChild(pin);
+    actions.appendChild(ren);
+    actions.appendChild(del);
+
+    item.appendChild(body);
+    item.appendChild(actions);
+    item.addEventListener("click", function () { selectChat(chat.id); });
+    return item;
+  }
+
+  function groupLabel(text) {
+    const lbl = document.createElement("div");
+    lbl.className = "group-label";
+    lbl.textContent = text;
+    return lbl;
+  }
+
+  function folderHead(folder, count) {
+    const head = document.createElement("div");
+    head.className = "folder-head" + (folder.closed ? " closed" : "");
+
+    const car = document.createElement("span");
+    car.className = "caret-ic";
+    car.innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+
+    const nm = document.createElement("span");
+    nm.className = "fname";
+    nm.textContent = "📁 " + folder.name;
+
+    const cnt = document.createElement("span");
+    cnt.className = "cnt";
+    cnt.textContent = count;
+
+    const fa = document.createElement("span");
+    fa.className = "fa";
+
+    const ren = document.createElement("button");
+    ren.className = "mini-btn";
+    ren.title = t("renameFolder");
+    ren.innerHTML = icon(ICONS.edit);
+    ren.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const v = window.prompt(t("renameFolder"), folder.name);
+      if (v && v.trim()) { folder.name = v.trim(); save(); renderChatList(); }
+    });
+
+    const del = document.createElement("button");
+    del.className = "mini-btn danger";
+    del.title = t("deleteFolder");
+    del.innerHTML = icon(ICONS.trash);
+    del.addEventListener("click", function (e) {
+      e.stopPropagation();
+      state.chats.forEach(function (c) { if (c.folderId === folder.id) c.folderId = null; });
+      state.folders = state.folders.filter(function (f) { return f.id !== folder.id; });
+      save();
+      renderChatList();
+      toast(t("folderDeleted"));
+    });
+
+    fa.appendChild(ren);
+    fa.appendChild(del);
+
+    head.appendChild(car);
+    head.appendChild(nm);
+    head.appendChild(cnt);
+    head.appendChild(fa);
+
+    head.addEventListener("click", function () {
+      folder.closed = !folder.closed;
+      save();
+      renderChatList();
+    });
+
+    head.addEventListener("dragover", function (e) {
+      if (!dragChatId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      head.classList.add("drop");
+    });
+    head.addEventListener("dragleave", function () { head.classList.remove("drop"); });
+    head.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      head.classList.remove("drop");
+      const chat = state.chats.filter(function (c) { return c.id === dragChatId; })[0];
+      if (chat) { folder.closed = false; moveChat(chat, folder.id); }
+      dragChatId = null;
+    });
+
+    return head;
+  }
+
+  function renderChatList() {
+    chatList.innerHTML = "";
+    const q = query.trim().toLowerCase();
+
+    if (q) {
+      const rows = [];
+      state.chats.forEach(function (chat) {
+        if (chat.title.toLowerCase().indexOf(q) !== -1) { rows.push({ chat: chat, snippet: null }); return; }
+        const s = matchSnippet(chat, q);
+        if (s) rows.push({ chat: chat, snippet: s });
+      });
+      if (!rows.length) {
+        const empty = document.createElement("div");
+        empty.className = "side-empty";
+        empty.textContent = t("noMatch", { q: query.trim() });
+        chatList.appendChild(empty);
+        return;
+      }
+      rows.forEach(function (r) { chatList.appendChild(chatItemEl(r.chat, r.snippet)); });
+      return;
+    }
+
+    if (!state.chats.length) {
+      const empty = document.createElement("div");
+      empty.className = "side-empty";
+      empty.textContent = t("noChats");
+      chatList.appendChild(empty);
+      return;
+    }
+
+    // 1. pinned, above everything
+    const pinned = state.chats.filter(function (c) { return c.pinned; });
+    if (pinned.length) {
+      chatList.appendChild(groupLabel("📌 " + t("pinned")));
+      pinned.forEach(function (c) { chatList.appendChild(chatItemEl(c, null)); });
+    }
+
+    // 2. folders
+    if (state.folders.length) {
+      state.folders.forEach(function (f) {
+        const kids = state.chats.filter(function (c) { return !c.pinned && c.folderId === f.id; });
+        chatList.appendChild(folderHead(f, kids.length));
+        if (f.closed) return;
+        const wrap = document.createElement("div");
+        wrap.className = "folder-kids";
+        kids.forEach(function (c) { wrap.appendChild(chatItemEl(c, null)); });
+        chatList.appendChild(wrap);
+      });
+    }
+
+    // 3. everything else, grouped by when it was last touched
+    const loose = state.chats.filter(function (c) {
+      return !c.pinned && (!c.folderId || !folderById(c.folderId));
+    });
+    let lastGroup = null;
+    loose.forEach(function (chat) {
+      const g = groupOf(chat.updated);
+      if (g !== lastGroup) { lastGroup = g; chatList.appendChild(groupLabel(g)); }
+      chatList.appendChild(chatItemEl(chat, null));
+    });
+  }
+
+  // dropping onto empty sidebar space takes a chat out of its folder
+  chatList.addEventListener("dragover", function (e) { if (dragChatId) e.preventDefault(); });
+  chatList.addEventListener("drop", function (e) {
+    if (!dragChatId) return;
+    e.preventDefault();
+    const chat = state.chats.filter(function (c) { return c.id === dragChatId; })[0];
+    if (chat && chat.folderId) moveChat(chat, null);
+    dragChatId = null;
+  });
+
+  function inlineRename(chat, body, nameEl) {
+    const input = document.createElement("input");
+    input.className = "rename-input";
+    input.value = displayTitle(chat.title);
+    body.replaceChild(input, nameEl);
+    input.focus();
+    input.select();
+
+    let done = false;
+    function commit(keep) {
+      if (done) return;
+      done = true;
+      if (keep) {
+        const v = input.value.trim();
+        if (v) { chat.title = v; save(); }
+      }
+      renderChatList();
+      if (chat.id === state.activeId) chatTitleEl.textContent = displayTitle(chat.title);
+    }
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); commit(true); }
+      if (e.key === "Escape") { e.preventDefault(); commit(false); }
+    });
+    input.addEventListener("blur", function () { commit(true); });
+    input.addEventListener("click", function (e) { e.stopPropagation(); });
+  }
+
+  function selectChat(id) {
+    if (id === state.activeId) return;
+    if (busy) abortStream();
+    state.activeId = id;
+    save();
+    renderChatList();
+    renderThread();
+    if (window.innerWidth <= 820) document.body.classList.add("collapsed");
+  }
+
+  function deleteChat(id) {
+    const wasActive = id === state.activeId;
+    if (wasActive && busy) abortStream();
+    state.chats = state.chats.filter(function (c) { return c.id !== id; });
+    if (wasActive) {
+      if (state.chats.length) state.activeId = state.chats[0].id;
+      else createChat();
+    }
+    save();
+    renderChatList();
+    if (wasActive) renderThread();
+  }
+
+  /* =====================================================================
+     THREAD
+     ===================================================================== */
+
+  function renderThread() {
+    thread.innerHTML = "";
+    const chat = activeChat();
+
+    chatTitleEl.textContent = chat ? displayTitle(chat.title) : t("newChatTitle");
+    if (chat && chat.model) modelSelect.value = chat.model;
+    syncComposerControls();
+    stopSpeaking();
+
+    if (!chat || !chat.messages.length) {
+      const w = document.createElement("div");
+      w.className = "welcome";
+
+      const h = document.createElement("h2");
+      h.textContent = t("welcomeTitle");
+
+      const p = document.createElement("p");
+      p.textContent = t("welcomeBody", { name: state.aiName });
+
+      const grid = document.createElement("div");
+      grid.className = "starters";
+      grid.id = "starterGrid";
+
+      w.appendChild(h); w.appendChild(p); w.appendChild(grid);
+      thread.appendChild(w);
+      startStarterRotation(grid);
+      return;
+    }
+
+    stopStarterRotation();
+    chat.messages.forEach(function (m, i) {
+      // an empty model slot is one that's about to be streamed into
+      if (m.role === "model" && !m.text && !m.error) return;
+      thread.appendChild(buildTurn(chat, m, i));
+    });
+    wireCodeCopy(thread);
+    requestAnimationFrame(function () { scrollToBottom(true); });
+  }
+
+  function buildTurn(chat, msg, index) {
+    const turn = document.createElement("div");
+    turn.className = "turn " + (msg.role === "user" ? "user" : "ai") + (msg.error ? " error" : "");
+
+    const who = document.createElement("div");
+    who.className = "who";
+    const label = document.createElement("span");
+    label.textContent = msg.role === "user" ? t("you") : (msg.error ? t("requestFailed") : state.aiName);
+    who.appendChild(label);
+    if (msg.ts) {
+      const time = document.createElement("span");
+      time.className = "time";
+      time.textContent = fullTime(msg.ts) + (msg.stopped ? " · " + t("stoppedTag") : "");
+      who.appendChild(time);
+    }
+
+    if (msg.variants && msg.variants.length > 1) who.appendChild(branchNav(chat, msg, index));
+
+    turn.appendChild(who);
+
+    if (msg.files && msg.files.length) turn.appendChild(filesEl(msg.files));
+
+    const content = document.createElement("div");
+    content.className = "content";
+    if (msg.role === "user") content.textContent = msg.text;
+    else content.innerHTML = renderMarkdown(msg.text);
+
+    turn.appendChild(content);
+
+    if (msg.sources && msg.sources.length) turn.appendChild(sourcesEl(msg.sources));
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    if (!msg.error) {
+      const copy = document.createElement("button");
+      copy.className = "act";
+      copy.innerHTML = icon(ICONS.copy) + "<span>" + escapeHtml(t("copy")) + "</span>";
+      copy.addEventListener("click", function () { copyText(msg.text); });
+      actions.appendChild(copy);
+    }
+
+    if (msg.role === "user") {
+      const edit = document.createElement("button");
+      edit.className = "act";
+      edit.innerHTML = icon(ICONS.edit) + "<span>" + escapeHtml(t("edit")) + "</span>";
+      edit.addEventListener("click", function () { startEdit(chat, index, turn); });
+      actions.appendChild(edit);
+    } else {
+      if (!msg.error) {
+        const speak = document.createElement("button");
+        speak.className = "act";
+        speak.innerHTML = icon(ICONS.sound) + "<span>" + escapeHtml(t("readAloud")) + "</span>";
+        speak.addEventListener("click", function () { readAloud(msg.text, speak); });
+        actions.appendChild(speak);
+      }
+      if (index === chat.messages.length - 1) {
+        const regen = document.createElement("button");
+        regen.className = "act";
+        regen.innerHTML = icon(ICONS.redo) + "<span>" + escapeHtml(msg.error ? t("tryAgain") : t("regenerate")) + "</span>";
+        regen.addEventListener("click", function () { regenerate(chat); });
+        actions.appendChild(regen);
+      }
+    }
+
+    if (actions.children.length) turn.appendChild(actions);
+    return turn;
+  }
+
+  function filesEl(files) {
+    const wrap = document.createElement("div");
+    wrap.className = "files";
+    files.forEach(function (f) {
+      if (f.kind === "image" && f.data) {
+        const img = document.createElement("img");
+        img.className = "shot";
+        img.src = "data:" + f.mime + ";base64," + f.data;
+        img.alt = f.name;
+        img.title = f.name;
+        img.addEventListener("click", function () {
+          lightbox.querySelector("img").src = img.src;
+          lightbox.classList.add("open");
+        });
+        wrap.appendChild(img);
+      } else {
+        wrap.appendChild(chipFor(f, null));
+      }
+    });
+    return wrap;
+  }
+
+  function hostOf(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ""); }
+    catch (e) { return ""; }
+  }
+
+  function sourcesEl(sources) {
+    const box = document.createElement("div");
+    box.className = "sources";
+
+    const h = document.createElement("h5");
+    h.textContent = "🌐 " + t("sourcesTitle");
+    box.appendChild(h);
+
+    const ol = document.createElement("ol");
+    sources.forEach(function (s) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = s.uri;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = s.title || hostOf(s.uri) || s.uri;
+      li.appendChild(a);
+      const host = hostOf(s.uri);
+      if (host && host !== a.textContent) {
+        const sp = document.createElement("span");
+        sp.className = "host";
+        sp.textContent = " · " + host;
+        li.appendChild(sp);
+      }
+      ol.appendChild(li);
+    });
+    box.appendChild(ol);
+    return box;
+  }
+
+  function startEdit(chat, index, turn) {
+    if (busy) { toast(t("toastWaitReply")); return; }
+    const msg = chat.messages[index];
+
+    const box = document.createElement("div");
+    box.className = "edit-box";
+
+    const ta = document.createElement("textarea");
+    ta.value = msg.text;
+    ta.rows = 1;
+
+    const row = document.createElement("div");
+    row.className = "edit-row";
+
+    const cancel = document.createElement("button");
+    cancel.className = "btn-sm";
+    cancel.textContent = t("cancel");
+    cancel.addEventListener("click", function () { renderThread(); });
+
+    const send = document.createElement("button");
+    send.className = "btn-sm primary";
+    send.textContent = t("saveAndResend");
+    send.addEventListener("click", function () {
+      const v = ta.value.trim();
+      if (!v) return;
+      // the old wording and everything it led to is kept as a sibling
+      // version, so you can flip back to it with ‹ ›
+      forkAt(chat, index, { text: v, ts: Date.now(), files: msg.files });
+      if (index === 0) chat.title = deriveTitle(v);
+      touch(chat);
+      renderChatList();
+      renderThread();
+      streamReply(chat);
+    });
+
+    row.appendChild(cancel);
+    row.appendChild(send);
+    box.appendChild(ta);
+    box.appendChild(row);
+
+    turn.replaceChild(box, turn.querySelector(".content"));
+    const act = turn.querySelector(".actions");
+    if (act) act.remove();
+
+    function grow() { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 320) + "px"; }
+    ta.addEventListener("input", grow);
+    ta.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); }
+      if (e.key === "Escape") { e.preventDefault(); cancel.click(); }
+    });
+    grow();
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+
+  function deriveTitle(text) {
+    const clean = text.replace(/\s+/g, " ").trim();
+    return clean.length > 42 ? clean.slice(0, 42).trim() + "…" : (clean || "New chat");
+  }
+
+  /* =====================================================================
+     STREAMING
+     ===================================================================== */
+
+  let busy = false;
+  let controller = null;
+
+  function setBusy(v) {
+    busy = v;
+    document.body.classList.toggle("busy", v);
+    modelSelect.disabled = v;
+    if (!v) sendBtn.disabled = !messageInput.value.trim() && !pending.length;
+  }
+
+  function abortStream() {
+    if (controller) { controller.abort(); controller = null; }
+  }
+
+  function apiUrl(model) {
+    return "https://generativelanguage.googleapis.com/v1beta/models/" + model +
+           ":streamGenerateContent?alt=sse";
+  }
+
+  function systemText(chat) {
+    const name = (state.aiName || "").trim();
+    const base = (state.systemPrompt || "").trim() || defaults.systemPrompt;
+    const mode = modeById((chat && chat.mode) || state.mode);
+    const effort = effortById((chat && chat.effort) || state.effort);
+
+    const lines = [];
+    if (name && name !== "Assistant") lines.push("Your name is " + name + ".");
+    lines.push(base);
+    if (mode.prompt) lines.push(mode.prompt);
+    if (effort.prompt) lines.push(effort.prompt);
+    if (webEnabled(chat)) {
+      lines.push("You have web search. Use it for anything current, factual or verifiable, and say plainly " +
+                 "when the results disagree with each other or don't settle the question.");
+    }
+    lines.push("When you write code, always put the language on the opening fence (```js, ```python, ```html) " +
+               "so it can be labelled, downloaded and run.");
+    return lines.join("\n\n");
+  }
+
+  // an attachment becomes either an inline blob (images, PDFs) or a fenced
+  // block of text in front of the message (code, .txt, .docx)
+  function partsFor(msg) {
+    const parts = [];
+    let text = msg.text || "";
+    let preface = "";
+
+    (msg.files || []).forEach(function (f) {
+      if (f.kind === "text" && f.text != null) {
+        preface += "--- file: " + f.name + " ---\n" + f.text + "\n--- end of " + f.name + " ---\n\n";
+      } else if (f.data) {
+        parts.push({ inlineData: { mimeType: f.mime, data: f.data } });
+      } else if (f.dropped) {
+        preface += "[the file " + f.name + " was attached earlier but is no longer stored]\n\n";
+      }
+    });
+
+    parts.push({ text: (preface + text).trim() || " " });
+    return parts;
+  }
+
+  function contentsFor(chat, upto) {
+    const end = (upto == null) ? chat.messages.length : upto;
+    return chat.messages.slice(0, end)
+      .filter(function (m) { return !m.error; })
+      .map(function (m) { return { role: m.role, parts: partsFor(m) }; });
+  }
+
+  function collectSources(meta, into) {
+    const chunks = (meta && meta.groundingChunks) || [];
+    chunks.forEach(function (c) {
+      const w = c.web || c.retrievedContext;
+      if (!w || !w.uri) return;
+      if (into.some(function (s) { return s.uri === w.uri; })) return;
+      into.push({ uri: w.uri, title: w.title || "" });
+    });
+  }
+
+  // writes the finished reply either as a new message or into the branch
+  // slot that regenerate() opened for it
+  function deliver(target, replaceIndex, data) {
+    const payload = Object.assign({ role: "model", error: false, stopped: false, sources: null }, data);
+    if (replaceIndex == null) {
+      target.messages.push(payload);
+    } else {
+      const m = target.messages[replaceIndex];
+      if (!m) return;
+      Object.assign(m, payload);
+      commitVariant(target, replaceIndex);
+    }
+    touch(target);
+  }
+
+  async function streamReply(chat, opts) {
+    const activeKey = activeApiKey();
+    if (!activeKey || activeKey.indexOf("REPLACE_WITH_YOUR") !== -1) {
+      deliver(chat, (opts && opts.replaceIndex != null) ? opts.replaceIndex : null,
+        { text: t("errNoKey"), ts: Date.now(), error: true });
+      renderThread();
+      return;
+    }
+
+    setBusy(true);
+
+    const turn = document.createElement("div");
+    turn.className = "turn ai";
+    const who = document.createElement("div");
+    who.className = "who";
+    who.innerHTML = "<span>" + escapeHtml(state.aiName) + "</span>";
+    const content = document.createElement("div");
+    content.className = "content";
+    content.innerHTML = '<div class="dots"><i></i><i></i><i></i></div>';
+    turn.appendChild(who);
+    turn.appendChild(content);
+    thread.appendChild(turn);
+    scrollToBottom(true);
+
+    controller = new AbortController();
+    const chatId = chat.id;
+    const replaceIndex = (opts && opts.replaceIndex != null) ? opts.replaceIndex : null;
+    const sources = [];
+    let acc = "";
+    let painting = false;
+
+    function paint() {
+      if (painting) return;
+      painting = true;
+      requestAnimationFrame(function () {
+        painting = false;
+        content.innerHTML = renderMarkdown(acc) + '<span class="caret"></span>';
+        wireCodeCopy(content);
+        scrollToBottom(false);
+      });
+    }
+
+    const wantsWeb = webEnabled(chat);
+    const effort = effortById(chat.effort || state.effort);
+
+    function requestBody(withTools) {
+      const body = {
+        contents: contentsFor(chat, replaceIndex),
+        systemInstruction: { parts: [{ text: systemText(chat) }] },
+        generationConfig: { temperature: effort.temp }
+      };
+      if (withTools) body.tools = [{ google_search: {} }];
+      return JSON.stringify(body);
+    }
+
+    function post(withTools) {
+      return fetch(apiUrl(chat.model || modelSelect.value), {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json", "x-goog-api-key": activeKey },
+        body: requestBody(withTools)
+      });
+    }
+
+    try {
+      let res = await post(wantsWeb);
+
+      // not every model accepts the search tool — fall back rather than fail
+      if (!res.ok && wantsWeb && (res.status === 400 || res.status === 404)) {
+        res = await post(false);
+        if (res.ok) toast(t("webFallback"));
+      }
+
+      if (!res.ok) {
+        let detail = t("errStatus", { code: res.status });
+        try {
+          const j = await res.json();
+          if (j && j.error && j.error.message) detail = j.error.message;
+        } catch (e) { /* body wasn't JSON */ }
+        throw new Error(detail);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const step = await reader.read();
+        if (step.done) break;
+        buffer += decoder.decode(step.value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.indexOf("data:") !== 0) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const json = JSON.parse(payload);
+            const cand = json.candidates && json.candidates[0];
+            if (cand && cand.groundingMetadata) collectSources(cand.groundingMetadata, sources);
+            const parts = cand && cand.content && cand.content.parts;
+            if (parts) {
+              acc += parts.map(function (p) { return p.text || ""; }).join("");
+              paint();
+            }
+          } catch (e) { /* partial frame; the next chunk completes it */ }
+        }
+      }
+
+      turn.remove();
+      const target = state.chats.filter(function (c) { return c.id === chatId; })[0];
+      if (target) {
+        deliver(target, replaceIndex, {
+          text: acc.trim() ? acc : t("errEmpty"),
+          ts: Date.now(),
+          error: !acc.trim(),
+          sources: sources.length ? sources : null
+        });
+      }
+      if (state.activeId === chatId) renderThread();
+      renderChatList();
+
+    } catch (err) {
+      turn.remove();
+      const target = state.chats.filter(function (c) { return c.id === chatId; })[0];
+      if (target) {
+        if (err.name === "AbortError") {
+          if (acc.trim() || replaceIndex != null) {
+            deliver(target, replaceIndex, {
+              text: acc.trim() ? acc : t("errEmpty"),
+              ts: Date.now(),
+              stopped: !!acc.trim(),
+              error: !acc.trim(),
+              sources: sources.length ? sources : null
+            });
+          }
+        } else {
+          deliver(target, replaceIndex, { text: err.message, ts: Date.now(), error: true });
+        }
+      }
+      if (state.activeId === chatId) renderThread();
+      renderChatList();
+    } finally {
+      controller = null;
+      setBusy(false);
+      messageInput.focus();
+    }
+  }
+
+  function sendMessage() {
+    const text = messageInput.value.trim();
+    const files = pending.filter(function (f) { return !f.loading; });
+    if ((!text && !files.length) || busy) return;
+    if (recording && recog) { try { recog.stop(); } catch (e) {} }
+
+    const chat = activeChat() || createChat();
+    chat.model = modelSelect.value;
+    chat.mode = modeSelect.value;
+    chat.effort = effortSelect.value;
+
+    chat.messages.push({
+      role: "user",
+      text: text,
+      ts: Date.now(),
+      files: files.length ? files : null
+    });
+    if (chat.messages.length === 1) {
+      chat.title = deriveTitle(text || (files[0] && files[0].name) || "New chat");
+    }
+    touch(chat);
+
+    pending = [];
+    renderAttachRow();
+    messageInput.value = "";
+    autoResize();
+    sendBtn.disabled = true;
+    renderThread();
+    renderChatList();
+    streamReply(chat);
+  }
+
+  function regenerate(chat) {
+    if (busy) return;
+    const last = chat.messages[chat.messages.length - 1];
+    if (!last) return;
+
+    // a failed attempt isn't worth keeping as a version — just retry
+    if (last.role === "model" && last.error && (!last.variants || last.variants.length < 2)) {
+      chat.messages.pop();
+      if (!chat.messages.length) { renderThread(); renderChatList(); return; }
+      touch(chat);
+      renderThread();
+      streamReply(chat);
+      return;
+    }
+
+    if (last.role === "user") {
+      touch(chat);
+      renderThread();
+      streamReply(chat);
+      return;
+    }
+
+    // keep the previous answer as a sibling version and stream a new one
+    const index = chat.messages.length - 1;
+    forkAt(chat, index, { text: "", ts: Date.now() });
+    touch(chat);
+    renderThread();
+    streamReply(chat, { replaceIndex: index });
+  }
+
+  /* =====================================================================
+     HEADER
+     ===================================================================== */
+
+  function startTitleEdit() {
+    const chat = activeChat();
+    if (!chat || chatTitleEl.getAttribute("contenteditable")) return;
+    chatTitleEl.setAttribute("contenteditable", "true");
+    chatTitleEl.focus();
+    const r = document.createRange();
+    r.selectNodeContents(chatTitleEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
+  function commitTitle(keep) {
+    const chat = activeChat();
+    chatTitleEl.removeAttribute("contenteditable");
+    if (!chat) return;
+    if (keep) {
+      const v = chatTitleEl.textContent.replace(/\s+/g, " ").trim();
+      if (v) { chat.title = v; save(); }
+    }
+    chatTitleEl.textContent = displayTitle(chat.title);
+    renderChatList();
+  }
+
+  chatTitleEl.addEventListener("click", startTitleEdit);
+  chatTitleEl.addEventListener("blur", function () {
+    if (chatTitleEl.getAttribute("contenteditable")) commitTitle(true);
+  });
+  chatTitleEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); chatTitleEl.blur(); }
+    if (e.key === "Escape") { e.preventDefault(); commitTitle(false); }
+  });
+
+  const chatMenu = $("chatMenu");
+  $("menuBtn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    const chat = activeChat();
+    const pinLabel = chatMenu.querySelector('[data-act="pin"] span');
+    if (pinLabel) pinLabel.textContent = (chat && chat.pinned) ? t("unpinChat") : t("pinChat");
+    chatMenu.classList.toggle("open");
+  });
+  document.addEventListener("click", function () { chatMenu.classList.remove("open"); });
+
+  chatMenu.addEventListener("click", function (e) {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    chatMenu.classList.remove("open");
+    const chat = activeChat();
+    if (!chat) return;
+    const act = btn.dataset.act;
+
+    if (act === "pin") togglePin(chat);
+    if (act === "folder") pickFolder(chat);
+
+    if (act === "rename") startTitleEdit();
+
+    if (act === "clear") {
+      if (busy) abortStream();
+      chat.messages = [];
+      chat.title = "New chat";
+      touch(chat);
+      renderThread();
+      renderChatList();
+    }
+
+    if (act === "delete") deleteChat(chat.id);
+
+    if (act === "copyAll") {
+      const text = chat.messages.map(function (m) {
+        return (m.role === "user" ? t("you") : state.aiName) + ":\n" + m.text;
+      }).join("\n\n");
+      copyText(text || t("noMessages"));
+    }
+  });
+
+  /* =====================================================================
+     MODALS
+     ===================================================================== */
+
+  function openModal(el) { el.classList.add("open"); }
+  function closeModal(el) { el.classList.remove("open"); }
+
+  document.querySelectorAll(".scrim").forEach(function (scrim) {
+    scrim.addEventListener("click", function (e) { if (e.target === scrim) closeModal(scrim); });
+    scrim.querySelectorAll("[data-close]").forEach(function (b) {
+      b.addEventListener("click", function () { closeModal(scrim); });
+    });
+  });
+
+  const settingsScrim = $("settingsScrim");
+  $("settingsBtn").addEventListener("click", function () {
+    $("aiNameInput").value = state.aiName;
+    $("sysPrompt").value = state.systemPrompt;
+    $("timeToggle").checked = state.showTime;
+    $("langSelect").value = LANGS.indexOf(state.lang) !== -1 ? state.lang : "en";
+    $("customKeyToggle").checked = state.useCustomKey;
+    $("customKeyInput").value = state.customApiKey || "";
+    $("customKeyField").style.display = state.useCustomKey ? "" : "none";
+    openModal(settingsScrim);
+    $("aiNameInput").focus();
+  });
+  $("customKeyToggle").addEventListener("change", function () {
+    $("customKeyField").style.display = this.checked ? "" : "none";
+    if (this.checked) $("customKeyInput").focus();
+  });
+  $("settingsCancel").addEventListener("click", function () { closeModal(settingsScrim); });
+  $("settingsSave").addEventListener("click", function () {
+    const nextLang = $("langSelect").value;
+    const langChanged = nextLang !== state.lang;
+
+    state.aiName = $("aiNameInput").value.trim() || defaults.aiName;
+    state.systemPrompt = $("sysPrompt").value.trim() || defaults.systemPrompt;
+    state.showTime = $("timeToggle").checked;
+    state.lang = LANGS.indexOf(nextLang) !== -1 ? nextLang : "en";
+    state.useCustomKey = $("customKeyToggle").checked;
+    state.customApiKey = $("customKeyInput").value.trim();
+    if (state.useCustomKey && !state.customApiKey) state.useCustomKey = false;
+    save();
+
+    if (langChanged) applyLanguage();   // repaints identity, list and thread too
+    else { applyIdentity(); renderThread(); }
+
+    closeModal(settingsScrim);
+    toast(t("toastSettingsSaved"));
+  });
+
+  function applyIdentity() {
+    const n = state.aiName;
+    $("brandName").textContent = n;
+    $("brandMark").textContent = (n.trim().charAt(0) || "J").toUpperCase();
+    document.title = n + " · Chat";
+    messageInput.placeholder = t("messageTo", { name: n });
+    document.body.classList.toggle("hide-time", !state.showTime);
+  }
+
+  // --- theme editor ---
+  const themeScrim = $("themeScrim");
+  let draft = null;
+
+  $("themeBtn").addEventListener("click", function () {
+    if (!draft) resetDraft();
+    openModal(themeScrim);
+  });
+
+  function resetDraft() {
+    draft = JSON.parse(JSON.stringify(themeById(state.themeId).colors));
+    buildColorGrid();
+  }
+
+  $("themeReset").addEventListener("click", function () {
+    resetDraft();
+    toast(t("toastThemeCopied"));
+  });
+
+  function buildColorGrid() {
+    const grid = $("colorGrid");
+    grid.innerHTML = "";
+    COLOR_FIELDS.forEach(function (f) {
+      const row = document.createElement("label");
+      row.className = "color-row";
+
+      const input = document.createElement("input");
+      input.type = "color";
+      input.value = draft[f.key];
+      input.addEventListener("input", function () {
+        draft[f.key] = input.value;
+        applyTheme({ id: "__draft", label: ($("themeName").value.trim() || t("themeNamePlaceholder")), colors: draft });
+      });
+
+      const span = document.createElement("span");
+      span.textContent = f[LANGS.indexOf(state.lang) !== -1 ? state.lang : "en"];
+
+      row.appendChild(input);
+      row.appendChild(span);
+      grid.appendChild(row);
+    });
+  }
+
+  $("themeSave").addEventListener("click", function () {
+    const name = $("themeName").value.trim();
+    if (!name) { $("themeName").focus(); toast(t("toastNameTheme")); return; }
+    const theme = { id: "c_" + newId(), label: name, colors: JSON.parse(JSON.stringify(draft)) };
+    state.customThemes.push(theme);
+    applyTheme(theme);
+    $("themeName").value = "";
+    toast(t("toastThemeSaved", { name: name }));
+  });
+
+  function themePreview(colors) {
+    const d = document.createElement("div");
+    d.className = "prev";
+    d.style.background = colors.bg;
+    const dot = document.createElement("i");
+    dot.style.background = colors.accent;
+    d.appendChild(dot);
+    return d;
+  }
+
+  function paintThemeGrids() {
+    const bg = $("builtinGrid"), cg = $("customGrid");
+    if (!bg || !cg) return;
+    bg.innerHTML = "";
+    cg.innerHTML = "";
+
+    // NB: the parameter used to be called `t`, which shadowed the i18n
+    // helper of the same name and broke deleting a custom theme.
+    function make(theme, removable) {
+      const card = document.createElement("button");
+      card.className = "theme-card" + (theme.id === state.themeId ? " active" : "");
+      card.appendChild(themePreview(theme.colors));
+
+      const lab = document.createElement("span");
+      lab.className = "label";
+      lab.textContent = theme.label;
+      card.appendChild(lab);
+
+      card.addEventListener("click", function () { applyTheme(theme); });
+
+      if (removable) {
+        const rm = document.createElement("span");
+        rm.className = "mini-btn danger";
+        rm.innerHTML = icon(ICONS.trash);
+        rm.title = t("deleteTheme");
+        rm.addEventListener("click", function (e) {
+          e.stopPropagation();
+          state.customThemes = state.customThemes.filter(function (x) { return x.id !== theme.id; });
+          if (state.themeId === theme.id) applyTheme(BUILTIN_THEMES[0]);
+          else { save(); paintThemeGrids(); }
+          toast(t("toastThemeDeleted"));
+        });
+        card.appendChild(rm);
+      }
+      return card;
+    }
+
+    BUILTIN_THEMES.forEach(function (th) { bg.appendChild(make(th, false)); });
+    state.customThemes.forEach(function (th) { cg.appendChild(make(th, true)); });
+
+    const has = state.customThemes.length > 0;
+    $("customTitle").style.display = has ? "" : "none";
+    cg.style.display = has ? "" : "none";
+  }
+
+  /* =====================================================================
+     EVENTS
+     ===================================================================== */
+
+  sendBtn.addEventListener("click", sendMessage);
+  stopBtn.addEventListener("click", function () { abortStream(); toast(t("toastStopped")); });
+
+  messageInput.addEventListener("input", function () {
+    autoResize();
+    sendBtn.disabled = !messageInput.value.trim() && !pending.length;
+  });
+
+  messageInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  newChatBtn.addEventListener("click", function () {
+    const chat = activeChat();
+    if (chat && !chat.messages.length) { renderThread(); messageInput.focus(); return; }
+    if (busy) abortStream();
+    createChat();
+    renderChatList();
+    renderThread();
+    messageInput.focus();
+  });
+
+  modelSelect.addEventListener("change", function () {
+    const chat = activeChat();
+    if (chat) { chat.model = modelSelect.value; save(); }
+  });
+
+  /* --- attachments --- */
+
+  attachBtn.addEventListener("click", function () { fileInput.click(); });
+  fileInput.addEventListener("change", function () {
+    addFiles(fileInput.files);
+    fileInput.value = "";
+  });
+
+  // paste a screenshot straight into the composer
+  messageInput.addEventListener("paste", function (e) {
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    const files = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].kind === "file") {
+        const f = items[i].getAsFile();
+        if (f) files.push(f);
+      }
+    }
+    if (files.length) { e.preventDefault(); addFiles(files); }
+  });
+
+  let dragDepth = 0;
+  window.addEventListener("dragenter", function (e) {
+    if (dragChatId) return;
+    if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") === -1) return;
+    dragDepth++;
+    dropZone.classList.add("show");
+  });
+  window.addEventListener("dragover", function (e) {
+    if (dropZone.classList.contains("show")) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }
+  });
+  window.addEventListener("dragleave", function () {
+    if (dragChatId) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) dropZone.classList.remove("show");
+  });
+  window.addEventListener("drop", function (e) {
+    if (!dropZone.classList.contains("show")) return;
+    e.preventDefault();
+    dragDepth = 0;
+    dropZone.classList.remove("show");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+
+  /* --- web search, voice, mode, effort --- */
+
+  webBtn.addEventListener("click", function () {
+    const chat = activeChat();
+    const effort = effortById(effortSelect.value);
+    if (effort.forceWeb) { toast(t("webOn")); return; }
+    const next = !(chat ? chat.web : state.web);
+    if (chat) chat.web = next;
+    state.web = next;
+    save();
+    syncComposerControls();
+    toast(next ? t("webOn") : t("webOff"));
+  });
+
+  micBtn.addEventListener("click", toggleMic);
+
+  modeSelect.addEventListener("change", function () {
+    const chat = activeChat();
+    state.mode = modeSelect.value;
+    if (chat) chat.mode = modeSelect.value;
+    save();
+  });
+
+  effortSelect.addEventListener("change", function () {
+    const chat = activeChat();
+    state.effort = effortSelect.value;
+    if (chat) chat.effort = effortSelect.value;
+    save();
+    syncComposerControls();
+  });
+
+  /* --- folders & lightbox --- */
+
+  $("newFolderBtn").addEventListener("click", createFolder);
+
+  lightbox.addEventListener("click", function () {
+    lightbox.classList.remove("open");
+    lightbox.querySelector("img").src = "";
+  });
+
+  searchInput.addEventListener("input", function () {
+    query = searchInput.value;
+    searchWrap.classList.toggle("has-text", !!query);
+    renderChatList();
+  });
+  $("searchClear").addEventListener("click", function () {
+    searchInput.value = "";
+    query = "";
+    searchWrap.classList.remove("has-text");
+    renderChatList();
+    searchInput.focus();
+  });
+
+  $("sidebarToggle").addEventListener("click", function () { document.body.classList.toggle("collapsed"); });
+  $("sideScrim").addEventListener("click", function () { document.body.classList.add("collapsed"); });
+
+  document.addEventListener("keydown", function (e) {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === "b") {
+      e.preventDefault();
+      document.body.classList.toggle("collapsed");
+    }
+    if (mod && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      document.body.classList.remove("collapsed");
+      searchInput.focus();
+      searchInput.select();
+    }
+    if (mod && e.key.toLowerCase() === "u") {
+      e.preventDefault();
+      fileInput.click();
+    }
+    if (e.key === "Escape") {
+      if (lightbox.classList.contains("open")) {
+        lightbox.classList.remove("open");
+        lightbox.querySelector("img").src = "";
+        return;
+      }
+      const open = document.querySelector(".scrim.open");
+      if (open) { closeModal(open); return; }
+      if (speakingBtn) { stopSpeaking(); return; }
+      if (recording && recog) { try { recog.stop(); } catch (err) {} return; }
+      if (busy) abortStream();
+    }
+  });
+
+  // keep relative times in the sidebar honest without a full re-render storm
+  setInterval(function () { if (!query) renderChatList(); }, 60000);
+
+  /* =====================================================================
+     BOOT
+     ===================================================================== */
+
+  // A thrown error up here used to leave a blank page with no clue why.
+  // Now it says so on screen.
+  window.addEventListener("error", function (e) {
+    if (document.body.dataset.booted) return;
+    document.body.style.cssText =
+      "background:#fff;color:#111;font:14px/1.6 system-ui,sans-serif;padding:28px;display:block;height:auto;overflow:auto";
+    document.body.textContent = "Startup error: " + (e.message || e.error) +
+      "  (" + (e.filename || "").split("/").pop() + ":" + e.lineno + ")";
+  });
+
+  document.body.classList.remove("collapsed-init");
+  if (window.innerWidth <= 820) document.body.classList.add("collapsed");
+
+  if (LANGS.indexOf(state.lang) === -1) state.lang = "en";
+  // chats saved before folders/modes existed get the new fields filled in
+  if (!Array.isArray(state.folders)) state.folders = [];
+  state.chats.forEach(function (c) {
+    if (c.folderId === undefined) c.folderId = null;
+    if (c.pinned === undefined) c.pinned = false;
+    if (!c.mode) c.mode = "general";
+    if (!c.effort) c.effort = "quick";
+    if (c.web === undefined) c.web = false;
+  });
+
+  applyTheme(themeById(state.themeId));
+  applyIdentity();
+  buildModeSelectors();
+  buildQuickActions();
+
+  if (!state.chats.length || !activeChat()) {
+    if (state.chats.length) state.activeId = state.chats[0].id;
+    else createChat();
+    save();
+  }
+
+  sendBtn.disabled = true;
+  applyLanguage();   // paints static labels, quick actions, list and thread
+  autoResize();
+  messageInput.focus();
+  document.body.dataset.booted = "1";
+</script>
+
+<script>
+/* Mustiga Mannen upgrade layer — runs after the main script.
+   Updates the model list (Gemini lineup as of 20 Oct 2026), repairs chats
+   saved with retired models, and sets up the first-run API key flow. */
+(function () {
+  if (typeof modelSelect === "undefined") { console.warn("Mustiga Mannen upgrade: main app not found on this page."); return; }
+  var DEFAULT_MODEL = "gemini-3.8-flash";
+
+  var MODELS = [
+    { group: "Flagship", items: [
+      ["gemini-4-argon", "Gemini 4 Argon — most capable (paid key)"] ] },
+    { group: "Fast", items: [
+      ["gemini-3.8-flash", "Gemini 3.8 Flash — Recommended"],
+      ["gemini-3.5-flash", "Gemini 3.5 Flash"] ] },
+    { group: "Lite", items: [
+      ["gemini-3.5-flash-lite", "Gemini 3.5 Flash-Lite"],
+      ["gemini-3.1-flash-lite", "Gemini 3.1 Flash-Lite"] ] },
+    { group: "Preview", items: [
+      ["gemini-3.1-pro-preview", "Gemini 3.1 Pro (preview)"] ] }
+  ];
+
+  var valid = {};
+  MODELS.forEach(function (g) { g.items.forEach(function (i) { valid[i[0]] = true; }); });
+
+  // --- model dropdown ---
+  var current = modelSelect.value;
+  modelSelect.innerHTML = "";
+  MODELS.forEach(function (g) {
+    var og = document.createElement("optgroup");
+    og.label = g.group;
+    g.items.forEach(function (i) {
+      var o = document.createElement("option");
+      o.value = i[0];
+      o.textContent = i[1];
+      og.appendChild(o);
+    });
+    modelSelect.appendChild(og);
+  });
+
+  // chats saved with retired models (2.5 series, 3.6/3.7 etc.) move to the default
+  state.chats.forEach(function (c) { if (!valid[c.model]) c.model = DEFAULT_MODEL; });
+  save();
+  var chat = activeChat();
+  modelSelect.value = valid[chat && chat.model] ? chat.model : (valid[current] ? current : DEFAULT_MODEL);
+
+  // --- key wording: a built-in key is used by default; your own is optional ---
+  I18N.en.errNoKey = "No API key available. Open Settings, switch on the custom Gemini API key option and paste your own key.";
+  I18N.sv.errNoKey = "Ingen API-nyckel tillgänglig. Öppna Inställningar, slå på egen Gemini-nyckel och klistra in din nyckel.";
+  I18N.en.customApiKeyWarning = "Optional — Mustiga Mannen already works without this.";
+  I18N.sv.customApiKeyWarning = "Valfritt — Mustiga Mannen fungerar redan utan detta.";
+  I18N.en.customApiKey = "Use my own Gemini API key (optional)";
+  I18N.sv.customApiKey = "Använd min egen Gemini-nyckel (valfritt)";
+  I18N.en.customApiKeyDesc = "Overrides the built-in key. Stored only in this browser and sent only to Google.";
+  I18N.sv.customApiKeyDesc = "Ersätter den inbyggda nyckeln. Sparas bara i den här webbläsaren och skickas bara till Google.";
+  applyLanguage();
+  modelSelect.value = valid[chat && chat.model] ? chat.model : DEFAULT_MODEL;
+
+  // Only if the built-in key is ever removed AND no custom key is set,
+  // open Settings with the key field ready.
+  if (!activeApiKey()) {
+    setTimeout(function () {
+      $("settingsBtn").click();
+      var tg = $("customKeyToggle");
+      tg.checked = true;
+      tg.dispatchEvent(new Event("change"));
+    }, 450);
+  }
+})();
+
+</script>
+</body>
+</html>

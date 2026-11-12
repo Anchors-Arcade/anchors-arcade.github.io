@@ -1,0 +1,14 @@
+Copyright (c) 2026 Theo Ahlqvist. All rights reserved.
+
+Mouse Quest Ultimate - game, source code and original assets.
+
+This work is not open source. No permission is granted to copy, modify, merge,
+publish, distribute, sublicense, sell, reverse engineer, decompile or
+disassemble any part of this work, or to create derivative works from it,
+without the prior written permission of the copyright holder.
+
+Third-party assets and packages included in this project remain under their own
+licences and are used here in accordance with them; this notice covers only the
+original work.
+
+Contact: theo.ahlqvist.12@outlook.com
