@@ -1,972 +1,97 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>
-/* Minimal mode is applied before first paint (no flash). The Fredoka web font is only requested when it is off. */
-(function(){
-  var d=document.documentElement, on=false;
-  try{ var v=localStorage.getItem("gn_minimal"); if(v!==null){ try{ v=JSON.parse(v); }catch(e){} on=(v===true||v===1||v==="true"||v==="1"); } }catch(e){}
-  if(on) d.classList.add("minimal");
-  window.gnFonts=function(){
-    if(window.gnFontsOn) return; window.gnFontsOn=1;
-    try{
-      var h=document.head, u=["https://fonts.googleapis.com","https://fonts.gstatic.com"], l, i;
-      for(i=0;i<2;i++){ l=document.createElement("link"); l.rel="preconnect"; l.href=u[i]; if(i) l.setAttribute("crossorigin",""); h.appendChild(l); }
-      l=document.createElement("link"); l.rel="stylesheet"; l.href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap"; h.appendChild(l);
-    }catch(e){}
-  };
-  if(!on) window.gnFonts();
-})();
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0a0507">
-<title>Julmust Arcade V67</title>
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Julmust - one hub for games, movies, music and AI.">
+<title>Julmust - Games, Movies, Music &amp; AI</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" href="favicon.png">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 
-<!-- proxy stack -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap">
+
+<!-- proxy stack (unchanged) -->
 <script src="scram/scramjet.all.js"></script>
 <script src="baremux/index.js"></script>
 <script src="wisp-config.js"></script>
 <script src="register-sw.js"></script>
 <script src="search.js"></script>
 
-<style>
-/* =====================================================================
-   Julmust Arcade - "cherry cola" soda theme: red + black, fizzy + bubbly
-   default theme = data-theme="red"    (cherry cola)
-   alt theme     = data-theme="purple" (blueberry soda)
-   ===================================================================== */
-:root{
-  color-scheme:dark;
-  --bg:#0a0507; --bg2:#120709; --panel:#160a0e; --card:#1c0d12; --card2:#2b1219;
-  --line:#3d1a22; --text:#fff4ee; --muted:#c4a3a5;
-  --gold:#ffc46b; --caramel:#e8a85a; --foam:#fff4ee;
-  --disp:"Fredoka","Baloo 2","Nunito","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
-  --body:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
-  --spring:cubic-bezier(.34,1.56,.64,1);
-  --acc:#ff3b4e; --acc2:#ff6b7a; --acc-hi:#f0283a; --acc-mid:#e11d2e; --acc-deep:#b30f1e;
-  --glow:rgba(255,59,78,.45);
-  --glow-soft:rgba(255,59,78,.14);
-  --tint:rgba(255,59,78,.2);
-  --ring:rgba(255,59,78,.32);
-  --ring2:rgba(255,59,78,.55);
-  --err:#ff9aa6;
-  --wash:rgba(225,29,46,.26); --wash2:rgba(255,196,107,.07);
-  --bub:rgba(255,80,96,.3);
-  --bar:rgba(10,5,7,.86);
-  --liquid-top:#a50f1d; --liquid-back:#6b0a14;
-  --gel:linear-gradient(180deg,rgba(255,255,255,.26) 0,rgba(255,255,255,.05) 48%,rgba(255,255,255,0) 50%),linear-gradient(180deg,var(--acc-hi),var(--acc-mid) 55%,var(--acc-deep));
-  --gelsh:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.25),0 6px 18px var(--glow);
-  --glass:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,0) 52%);
-}
-body[data-theme="purple"]{
-  --bg:#07060f; --bg2:#0d0a1c; --panel:#0f0d20; --card:#15122c; --card2:#201b40;
-  --line:#2f2a5a; --text:#f4f2ff; --muted:#aaa6d0;
-  --acc:#9d8cff; --acc2:#c4baff; --acc-hi:#7b66ff; --acc-mid:#5e46e8; --acc-deep:#3d27b0;
-  --glow:rgba(124,102,255,.45);
-  --glow-soft:rgba(124,102,255,.15);
-  --tint:rgba(124,102,255,.2);
-  --ring:rgba(157,140,255,.32);
-  --ring2:rgba(157,140,255,.55);
-  --err:#ff9fb4;
-  --wash:rgba(94,70,232,.28); --wash2:rgba(157,140,255,.08);
-  --bub:rgba(157,140,255,.3);
-  --bar:rgba(7,6,15,.86);
-  --liquid-top:#3d27b0; --liquid-back:#26187a;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;background:#0a0507}
-body{
-  min-height:100vh; color:var(--text); font-family:var(--body); background-color:var(--bg);
-  background-image:
-    radial-gradient(1000px 600px at 50% -14%, var(--wash), transparent 62%),
-    radial-gradient(640px 460px at 104% 30%, var(--wash2), transparent 62%),
-    radial-gradient(760px 520px at -8% 78%, var(--wash), transparent 64%),
-    linear-gradient(180deg, var(--bg2), var(--bg) 520px);
-  background-attachment:fixed;
-}
-button{font-family:inherit}
-::selection{background:var(--glow); color:#fff}
-:focus-visible{outline:3px solid var(--foam); outline-offset:2px}
-main,footer{position:relative; z-index:1}
-
-/* ---------------- fizz layer (rising bubbles) ---------------- */
-#fizz{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; contain:strict}
-#fizz i{
-  position:absolute; bottom:-90px; left:var(--x); width:var(--s); height:var(--s);
-  border-radius:50%; opacity:0; will-change:transform,opacity;
-  border:1px solid rgba(255,255,255,.22);
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255,255,255,.75) 0 7%, rgba(255,255,255,.16) 8% 22%, transparent 24%),
-    radial-gradient(circle at 50% 50%, transparent 52%, var(--bub) 100%);
-  animation:fizzRise var(--t) linear var(--dl) infinite;
-}
-@keyframes fizzRise{
-  0%{transform:translate3d(0,0,0) scale(.7); opacity:0}
-  8%{opacity:.85}
-  25%{transform:translate3d(var(--dx),-28vh,0) scale(.9)}
-  50%{transform:translate3d(calc(var(--dx) * -.5),-58vh,0) scale(1)}
-  75%{transform:translate3d(calc(var(--dx) * .7),-88vh,0) scale(1.05)}
-  92%{opacity:.7}
-  100%{transform:translate3d(calc(var(--dx) * -.3),-118vh,0) scale(1.1); opacity:0}
-}
-body.ovl #fizz, body.ovl #pops, body[data-fv] #fizz, body.no-anim #fizz, body.no-anim #pops{display:none}
-/* while a game or the proxy browser is open, freeze every animation behind it */
-body.ovl *, body.ovl *::before, body.ovl *::after{animation-play-state:paused !important}
-
-/* click pops */
-#pops{position:fixed; inset:0; z-index:45; pointer-events:none; overflow:hidden}
-#pops i{
-  position:absolute; width:var(--s); height:var(--s); margin:calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
-  border-radius:50%; border:1.5px solid rgba(255,255,255,.85);
-  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.85), var(--bub));
-  animation:popOut .6s cubic-bezier(.2,.7,.3,1) forwards;
-}
-@keyframes popOut{
-  0%{transform:translate(0,0) scale(.4); opacity:1}
-  70%{opacity:1}
-  100%{transform:translate(var(--dx),var(--dy)) scale(1.6); opacity:0}
-}
-
-/* ---------------- header ---------------- */
-#topbar{
-  position:sticky; top:0; z-index:40;
-  display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap;
-  padding:10px 22px 11px;
-  background:linear-gradient(180deg,rgba(48,10,18,.94),var(--bar));
-  backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2);
-  border-bottom:3px solid var(--acc-mid);
-}
-/* dripping cola edge under the header */
-#topbar::after{
-  content:""; position:absolute; left:0; right:0; top:100%; height:14px; pointer-events:none;
-  background:linear-gradient(var(--acc-mid),var(--acc-deep));
-  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='14' viewBox='0 0 160 14'><path d='M0 0H160V4C150 4 148 12 140 12C132 12 130 4 120 4C108 4 106 9 98 9C90 9 88 4 76 4C68 4 66 14 58 14C50 14 48 4 36 4C28 4 26 8 20 8C12 8 10 4 0 4Z'/></svg>") repeat-x 0 0/160px 14px;
-  mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='14' viewBox='0 0 160 14'><path d='M0 0H160V4C150 4 148 12 140 12C132 12 130 4 120 4C108 4 106 9 98 9C90 9 88 4 76 4C68 4 66 14 58 14C50 14 48 4 36 4C28 4 26 8 20 8C12 8 10 4 0 4Z'/></svg>") repeat-x 0 0/160px 14px;
-}
-body[data-fv] #topbar::after{display:none}
-.brand{display:flex; align-items:center; gap:12px; margin-right:auto; cursor:pointer; border-radius:999px}
-.brand:hover .cap{transform:rotate(-14deg) scale(1.08)}
-/* bottle cap around the rum-bottle logo */
-.cap{
-  flex:0 0 auto; width:52px; height:52px; border-radius:50%; display:grid; place-items:center;
-  background:
-    radial-gradient(circle at 50% 50%, #1b0a0f 0 55%, transparent 57%),
-    repeating-conic-gradient(var(--gold) 0 9deg, var(--caramel) 9deg 18deg);
-  box-shadow:0 4px 16px var(--glow), inset 0 0 0 2px rgba(255,255,255,.25);
-  transition:transform .35s var(--spring);
-}
-.logo-img{width:40px; height:40px; display:block}
-.cap .logo-img{width:32px; height:32px}
-.brand h1{
-  font-family:var(--disp); font-weight:700; font-size:1.34rem; letter-spacing:.2px; line-height:1.05; white-space:nowrap;
-  text-shadow:0 2px 0 rgba(0,0,0,.45);
-}
-.brand h1 span{color:var(--acc2)}
-.vchip{
-  font-family:var(--disp); font-weight:600; font-size:.7rem; color:#fff; letter-spacing:.6px;
-  background:var(--gel); padding:3px 10px; border-radius:999px; box-shadow:var(--gelsh);
-  text-shadow:0 1px 2px rgba(60,0,8,.6); translate:0 -7px;
-}
-#tagline{font-size:.78rem; color:var(--muted); margin-top:3px}
-.nav{
-  display:flex; gap:4px; padding:5px; border-radius:999px; max-width:100%; overflow-x:auto; scrollbar-width:none;
-  background:rgba(0,0,0,.45); border:2px solid var(--line);
-  box-shadow:inset 0 2px 8px rgba(0,0,0,.65);
-}
-.nav::-webkit-scrollbar{display:none}
-.nico{font-size:.95em; line-height:1}
-.navlink{
-  position:relative; display:inline-flex; align-items:center; gap:7px; flex:0 0 auto; white-space:nowrap;
-  padding:8px 18px; border:none; background:transparent; color:var(--muted);
-  font-family:var(--disp); font-size:.98rem; font-weight:600; letter-spacing:.2px; border-radius:999px; cursor:pointer;
-  transition:transform .3s var(--spring), color .15s, background .15s;
-}
-.navlink:hover{color:var(--text); transform:translateY(-2px) scale(1.05)}
-.navlink:active{transform:scale(.92)}
-.navlink.active{background:var(--gel); color:#fff; box-shadow:var(--gelsh); text-shadow:0 1px 2px rgba(60,0,8,.6)}
-.navlink.active::before{
-  content:""; width:9px; height:9px; border-radius:50%; flex:0 0 auto;
-  background:radial-gradient(circle at 32% 30%, #fff 0 22%, rgba(255,255,255,.35) 24% 60%, rgba(255,255,255,.1) 62%);
-  box-shadow:0 0 0 1.5px rgba(255,255,255,.7);
-}
-.spark{display:inline-block; color:var(--gold); font-size:.95em; animation:twinkle 2.2s ease-in-out infinite}
-.navlink.active .spark{color:#fff}
-@keyframes twinkle{0%,100%{transform:scale(1) rotate(0); opacity:1}50%{transform:scale(1.35) rotate(24deg); opacity:.7}}
-#settingsBtn{font-size:1.05rem; padding:0; width:44px; height:44px; border-radius:50%; display:grid; place-items:center}
-#libTools{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-body[data-view="home"] #libTools,
-body[data-fv] #libTools{display:none}
-/* iframe views (AI, Movies, Music): the frame fills everything under the header */
-body[data-fv]{overflow:hidden}
-#view-ai{position:relative}
-#aiFrame{display:block; width:100%; height:calc(100vh - var(--topH,70px)); height:calc(100dvh - var(--topH,70px)); border:0; background:var(--bg)}
-.aiload{
-  position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
-  background:radial-gradient(600px 400px at 50% 40%, var(--wash), transparent 70%), var(--bg);
-  font-family:var(--disp); font-size:1.1rem; color:var(--muted); pointer-events:none; transition:opacity .35s, visibility .35s;
-}
-.aiload.done{opacity:0; visibility:hidden}
-.aiload.err{pointer-events:auto; padding:24px; text-align:center}
-.aiload.err h2{margin:0; font-size:1.3rem; color:var(--text)}
-.aiload.err p{margin:0; max-width:480px; font-family:system-ui,"Segoe UI",sans-serif; font-size:.95rem; line-height:1.55}
-.aiload.err code{background:rgba(0,0,0,.4); padding:2px 9px; border-radius:999px; color:var(--acc2); font-size:.92em}
-.ptbig{font-size:3rem; line-height:1}
-.ptbtns{display:flex; flex-wrap:wrap; gap:12px; justify-content:center}
-.ptbtns .cta{padding:11px 24px; font-size:1rem; text-decoration:none}
-/* proxied tabs (Movies, Music): loader/error panel on top of the mounted proxy frame */
-.ptwrap{position:relative; height:calc(100vh - var(--topH,70px)); height:calc(100dvh - var(--topH,70px))}
-.ptmount{position:absolute; inset:0}
-.ptmount iframe{display:block; width:100%; height:100%; border:0; background:#fff}
-.aibub{
-  width:54px; height:54px; border-radius:50%; border:2px solid rgba(255,255,255,.5);
-  background:radial-gradient(circle at 30% 26%, #fff 0 8%, rgba(255,255,255,.25) 9% 22%, transparent 24%), radial-gradient(circle, var(--acc), var(--acc-deep));
-  box-shadow:0 0 30px var(--glow); animation:bob 1.2s ease-in-out infinite;
-}
-.searchwrap{position:relative; flex:1 1 220px; max-width:400px}
-.searchwrap svg{position:absolute; left:16px; top:50%; translate:0 -50%; width:16px; height:16px; stroke:var(--acc2); fill:none; stroke-width:2.4; stroke-linecap:round}
-#search{
-  width:100%; padding:11px 18px 11px 42px; border-radius:999px;
-  border:2px solid var(--line); background:var(--glass),var(--panel); color:var(--text);
-  box-shadow:inset 0 2px 6px rgba(0,0,0,.5);
-  font-size:.95rem; outline:none; transition:border-color .15s, box-shadow .2s;
-}
-#search:focus{border-color:var(--acc); box-shadow:inset 0 2px 6px rgba(0,0,0,.5), 0 0 0 4px var(--glow-soft), 0 0 22px var(--glow-soft)}
-#search::placeholder{color:#a8888b}
-select#sort{
-  appearance:none; -webkit-appearance:none;
-  padding:11px 36px 11px 18px; border-radius:999px; border:2px solid var(--line);
-  background:var(--glass),var(--panel) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%23ff6b7a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>') no-repeat right 15px center;
-  color:var(--text); font-size:.9rem; cursor:pointer; outline:none; transition:border-color .15s, transform .25s var(--spring);
-}
-select#sort:hover{border-color:var(--ring2); transform:translateY(-1px)}
-select#sort:focus{border-color:var(--acc)}
-select option{background:#1c0d12; color:#fff4ee}
-.tool{
-  padding:10px 16px; border-radius:999px; border:2px solid var(--line);
-  background:var(--glass),var(--panel); color:var(--text); cursor:pointer; font-size:.92rem;
-  transition:border-color .15s, background .15s, transform .3s var(--spring), box-shadow .2s; white-space:nowrap;
-}
-.tool:hover{border-color:var(--ring2); transform:translateY(-2px) scale(1.06); box-shadow:0 6px 16px var(--glow-soft)}
-.tool:active{transform:scale(.9)}
-.tool.on{border-color:transparent; color:#fff; background:var(--gel); box-shadow:var(--gelsh)}
-.tool b{color:var(--acc2)}
-.tool.on b{color:#fff}
-
-/* ---------------- views ---------------- */
-.view{display:none}
-.view.active{display:block; animation:fadeUp .35s ease}
-@keyframes fadeUp{from{opacity:0; transform:translateY(12px)}to{opacity:1; transform:none}}
-.wrap{max-width:1280px; margin:0 auto; padding:26px 22px 80px}
-
-/* ---------------- home / hero ---------------- */
-#view-home .hero{
-  position:relative; max-width:900px; margin:0 auto; padding:46px 22px 44px;
-  display:flex; flex-direction:column; align-items:center; text-align:center;
-}
-.hero-bubbles{position:absolute; inset:0; pointer-events:none}
-.hero-bubbles i{
-  position:absolute; left:var(--x); top:var(--y); width:var(--s); height:var(--s); border-radius:50%;
-  border:1.5px solid rgba(255,255,255,.3);
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255,255,255,.8) 0 8%, rgba(255,255,255,.18) 9% 24%, transparent 26%),
-    radial-gradient(circle at 50% 50%, transparent 50%, var(--bub) 100%);
-  animation:bob var(--d) ease-in-out infinite;
-}
-.hero > *:not(.hero-bubbles){position:relative}
-.hero-logo{width:min(150px,36vw); margin-bottom:14px; animation:bob 3.4s ease-in-out infinite}
-.hero-logo .logo-img{width:100%; height:auto; aspect-ratio:1/1; filter:drop-shadow(0 10px 30px var(--glow))}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.eyebrow{
-  display:inline-flex; align-items:center; gap:10px; margin-bottom:10px;
-  padding:6px 18px; border-radius:999px; font-family:var(--disp); font-weight:600; font-size:.95rem; letter-spacing:.4px;
-  color:var(--gold); background:rgba(255,196,107,.09); border:1.5px dashed rgba(255,196,107,.5);
-}
-.eyebrow .spark{font-size:.8em}
-.hero h2{
-  font-family:var(--disp); font-weight:700; line-height:.98; letter-spacing:.02em;
-  font-size:clamp(2.7rem,10.5vw,6rem); margin-bottom:12px;
-  display:flex; flex-wrap:wrap; justify-content:center; gap:0 .26em;
-}
-.hero h2 span{
-  display:inline-block;
-  background:linear-gradient(180deg,#fff4ee 0 7%,#ff8f9b 15%,#ff3b4e 42%,#e11d2e 63%,#9d0c1a 100%);
-  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
-  filter:drop-shadow(0 5px 0 #4b050e) drop-shadow(0 0 22px var(--glow));
-  transition:transform .4s var(--spring);
-}
-body[data-theme="purple"] .hero h2 span{
-  background:linear-gradient(180deg,#f4f2ff 0 7%,#c4baff 15%,#9d8cff 42%,#5e46e8 63%,#2c1a8c 100%);
-  -webkit-background-clip:text; background-clip:text;
-  filter:drop-shadow(0 5px 0 #170b52) drop-shadow(0 0 22px var(--glow));
-}
-.hero h2 span:hover{transform:translateY(-5px) rotate(-2deg) scale(1.04)}
-.hero-tag{color:var(--muted); font-size:1.02rem; margin-bottom:28px; max-width:520px; line-height:1.5}
-.hero-tag b{color:var(--foam)}
-
-.psearch{
-  display:flex; align-items:center; gap:8px; width:min(680px,100%);
-  padding:8px 8px 8px 22px; border-radius:999px;
-  background:var(--glass),var(--panel); border:2.5px solid var(--ring2);
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.14), inset 0 -4px 10px rgba(0,0,0,.45), 0 12px 40px var(--glow-soft);
-  transition:border-color .15s, box-shadow .2s, transform .3s var(--spring);
-}
-.psearch:focus-within{border-color:var(--acc); transform:scale(1.015); box-shadow:inset 0 2px 0 rgba(255,255,255,.14), inset 0 -4px 10px rgba(0,0,0,.45), 0 0 0 5px var(--glow-soft), 0 14px 46px var(--glow)}
-.psearch svg{width:20px; height:20px; stroke:var(--acc2); fill:none; stroke-width:2.4; stroke-linecap:round; flex:0 0 auto}
-#pInput{
-  flex:1; min-width:0; background:none; border:none; outline:none;
-  color:var(--text); font-size:1.08rem; padding:13px 0;
-}
-#pInput::placeholder{color:#a8888b}
-.enginesel{
-  appearance:none; -webkit-appearance:none; flex:0 0 auto;
-  padding:10px 30px 10px 15px; border-radius:999px; border:2px solid var(--line);
-  background:var(--card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%23ff6b7a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>') no-repeat right 12px center;
-  color:var(--text); font-size:.82rem; cursor:pointer; outline:none;
-}
-.enginesel:focus-visible{border-color:var(--acc)}
-.gobtn{
-  flex:0 0 auto; width:54px; height:54px; border-radius:50%; border:none; cursor:pointer;
-  background:var(--gel); color:#fff; font-size:1.3rem; font-weight:700;
-  box-shadow:var(--gelsh); text-shadow:0 1px 2px rgba(60,0,8,.6);
-  transition:transform .3s var(--spring), filter .13s;
-}
-.gobtn:hover{filter:brightness(1.1); transform:scale(1.1) rotate(-6deg)}
-.gobtn:active{transform:scale(.88)}
-.gobtn:disabled{opacity:.5; cursor:wait}
-
-.pstatus{min-height:22px; margin-top:14px; font-size:.88rem; color:var(--acc2); display:flex; align-items:center; justify-content:center; gap:8px}
-.pstatus:not(:empty)::before{
-  content:""; width:10px; height:10px; border-radius:50%; flex:0 0 auto;
-  background:radial-gradient(circle at 32% 30%, #fff 0 20%, var(--acc) 22%);
-  animation:pulseB 1s ease-in-out infinite;
-}
-@keyframes pulseB{0%,100%{transform:scale(.7); opacity:.6}50%{transform:scale(1.25); opacity:1}}
-.bar-track{width:min(440px,80%); height:12px; border-radius:99px; background:rgba(0,0,0,.5); border:1.5px solid var(--line); overflow:hidden; opacity:0; transition:opacity .2s; margin:8px auto 0}
-.bar-track.on{opacity:1}
-#pBar{
-  height:100%; width:0%; border-radius:99px; transition:width .3s;
-  background:
-    radial-gradient(circle at 8px 50%, rgba(255,255,255,.55) 0 2px, transparent 3px) 0 0/22px 100%,
-    linear-gradient(90deg,var(--acc-deep),var(--acc),var(--acc2));
-  animation:fizzBar 1.2s linear infinite;
-}
-@keyframes fizzBar{to{background-position:22px 0,0 0}}
-.perror{max-width:560px; margin:10px auto 0; font-size:.88rem; color:var(--err); word-break:break-word}
-
-.chips{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:28px}
-.chip{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:10px 20px; border-radius:999px; border:2px solid var(--ring);
-  background:
-    radial-gradient(circle at 22% 18%, rgba(255,255,255,.3) 0 9%, transparent 10%),
-    linear-gradient(180deg,var(--card2),var(--card));
-  color:var(--text); font-family:var(--disp); font-weight:500; font-size:.96rem; cursor:pointer;
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.35);
-  transition:border-color .15s, transform .3s var(--spring), background .15s, box-shadow .2s;
-}
-.chip:hover{border-color:var(--acc); transform:translateY(-4px) rotate(-3deg) scale(1.07); box-shadow:inset 0 -3px 0 rgba(0,0,0,.3), 0 10px 22px var(--glow-soft)}
-.chip:nth-child(even):hover{transform:translateY(-4px) rotate(3deg) scale(1.07)}
-.chip:active{transform:scale(.9)}
-.homeCtas{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:32px}
-.cta{
-  position:relative; overflow:hidden; isolation:isolate;
-  display:inline-flex; align-items:center; gap:10px;
-  padding:15px 34px; border-radius:999px; border:2px solid var(--line);
-  background:var(--glass),var(--panel); color:var(--text); font-family:var(--disp); font-size:1.15rem; font-weight:700; letter-spacing:.3px; cursor:pointer;
-  transition:border-color .15s, transform .3s var(--spring), box-shadow .2s;
-}
-.cta:hover{border-color:var(--acc); transform:translateY(-4px) scale(1.06)}
-.cta:active{transform:scale(.93)}
-.cta.red{background:var(--gel); border-color:transparent; color:#fff; box-shadow:var(--gelsh), 0 0 0 0 var(--glow); text-shadow:0 1px 3px rgba(60,0,8,.65); animation:ctaPulse 2.4s ease-in-out infinite}
-.cta.red:hover{filter:brightness(1.08)}
-@keyframes ctaPulse{0%,100%{box-shadow:var(--gelsh), 0 0 0 0 var(--glow)}50%{box-shadow:var(--gelsh), 0 0 0 10px rgba(255,59,78,0)}}
-/* fizz inside the CTA */
-.cta.red::before{
-  content:""; position:absolute; left:0; right:0; top:0; height:200%; z-index:-1; pointer-events:none;
-  background-image:
-    radial-gradient(circle at 12% 60%, rgba(255,255,255,.75) 0 2px, transparent 3px),
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,.55) 0 1.5px, transparent 2.5px),
-    radial-gradient(circle at 52% 80%, rgba(255,255,255,.7) 0 2.5px, transparent 3.5px),
-    radial-gradient(circle at 70% 40%, rgba(255,255,255,.5) 0 1.5px, transparent 2.5px),
-    radial-gradient(circle at 88% 70%, rgba(255,255,255,.7) 0 2px, transparent 3px);
-  background-size:100% 50%; background-repeat:repeat-y;
-  animation:sparkUp 2.6s linear infinite;
-}
-@keyframes sparkUp{from{transform:translateY(0)}to{transform:translateY(-50%)}}
-.homeStats{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:28px}
-.stat{
-  font-size:.82rem; color:var(--muted);
-  background:linear-gradient(180deg,rgba(255,196,107,.16),rgba(255,196,107,.04));
-  border:1.5px solid rgba(255,196,107,.38); padding:6px 15px; border-radius:999px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
-}
-.stat b{color:var(--gold); font-family:var(--disp); font-size:.95rem}
-
-/* liquid wave + cola pool below the hero */
-.liquid{position:relative; margin-top:6px}
-.wave{position:relative; height:64px; overflow:hidden; line-height:0; margin-bottom:-1px}
-.wave svg{position:absolute; left:0; top:0; display:block; width:200%; height:100%; animation:slosh 14s linear infinite}
-.wave svg.back{animation-duration:22s; animation-direction:reverse}
-.wave path{fill:var(--liquid-top)}
-.wave .back path{fill:var(--liquid-back)}
-@keyframes slosh{to{transform:translateX(-50%)}}
-.pool{background:linear-gradient(180deg,var(--liquid-top),rgba(0,0,0,0) 380px); padding:6px 0 30px}
-.featured{max-width:1280px; margin:0 auto; padding:6px 22px 0; width:100%}
-
-/* ---------------- sections / cards ---------------- */
-#recentSec{margin-bottom:28px}
-.sechead{display:flex; align-items:center; gap:12px; margin-bottom:12px}
-.sechead h2{display:flex; align-items:center; gap:10px; font-family:var(--disp); font-size:1.35rem; font-weight:700; letter-spacing:.3px; white-space:nowrap}
-.sechead .accent{
-  display:inline-grid; place-items:center; width:32px; height:32px; border-radius:50%; flex:0 0 auto;
-  font-size:.85rem; color:#fff;
-  background:
-    radial-gradient(circle at 30% 26%, #fff 0 7%, rgba(255,255,255,.28) 8% 19%, transparent 21%),
-    radial-gradient(circle at 50% 50%, var(--acc), var(--acc-deep));
-  box-shadow:0 3px 12px var(--glow), inset 0 -3px 5px rgba(0,0,0,.28);
-}
-.sechead::after{
-  content:""; flex:1; height:10px; opacity:.6; order:1;
-  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="10" viewBox="0 0 24 10"><path d="M0 5Q6 0 12 5T24 5" stroke="%23ff6b7a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>') repeat-x 0 50%/24px 10px;
-}
-#clearRecent{order:2; background:none; border:1.5px solid var(--line); color:var(--muted); font-size:.8rem; cursor:pointer; padding:5px 14px; border-radius:999px; transition:all .25s var(--spring)}
-#clearRecent:hover{color:var(--text); border-color:var(--ring2); transform:scale(1.07)}
-#allCount{
-  font-family:var(--disp); font-size:.8rem; font-weight:600; color:var(--gold);
-  background:rgba(255,196,107,.1); border:1.5px solid rgba(255,196,107,.38); border-radius:999px; padding:2px 12px;
-}
-.row{display:flex; gap:16px; overflow-x:auto; padding:14px 6px 18px; scrollbar-width:thin; scrollbar-color:var(--acc-deep) transparent}
-.row .game{flex:0 0 156px; width:156px}
-
-.grid{display:grid; gap:20px; grid-template-columns:repeat(auto-fill,minmax(164px,1fr))}
-body[data-cards="s"] .grid{grid-template-columns:repeat(auto-fill,minmax(122px,1fr)); gap:14px}
-body[data-cards="s"] .row .game{flex-basis:122px; width:122px}
-body[data-cards="l"] .grid{grid-template-columns:repeat(auto-fill,minmax(214px,1fr))}
-body[data-cards="l"] .row .game{flex-basis:196px; width:196px}
-.game{
-  position:relative; border-radius:26px; overflow:hidden; cursor:pointer;
-  background:linear-gradient(180deg,var(--card2),var(--card)); border:2px solid var(--line);
-  box-shadow:0 6px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
-  opacity:0; translate:0 18px;
-  transition:opacity .5s ease, translate .6s var(--spring), transform .3s var(--spring), border-color .2s ease, box-shadow .25s ease;
-}
-.game.in{opacity:1; translate:0 0}
-.game:hover{
-  transform:translateY(-6px) scale(1.035); border-color:var(--acc);
-  box-shadow:0 0 0 2px var(--ring2), 0 18px 40px rgba(0,0,0,.6), 0 0 36px var(--glow);
-  animation:wobble .6s ease-out;
-}
-.game:active{transform:scale(.97)}
-@keyframes wobble{
-  0%{transform:translateY(0) scale(1) rotate(0)}
-  30%{transform:translateY(-8px) scale(1.05) rotate(-2.2deg)}
-  60%{transform:translateY(-6px) scale(1.04) rotate(1.6deg)}
-  100%{transform:translateY(-6px) scale(1.035) rotate(0)}
-}
-.game.own{border-color:rgba(255,196,107,.5)}
-.thumb{position:relative; aspect-ratio:1/1; overflow:hidden; background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.08), transparent 55%), linear-gradient(160deg,#2a1218,#14080b)}
-/* shimmer while a cover is loading (only for cards near the viewport) */
-.game.in .thumb.ld{background:linear-gradient(110deg,#1c0d12 30%,#3a1820 50%,#1c0d12 70%); background-size:220% 100%; animation:shimmer 1.3s linear infinite}
-@keyframes shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
-.thumb img{
-  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-  opacity:0; transition:opacity .4s ease, transform .35s var(--spring); z-index:1;
-}
-.thumb img.ok{opacity:1}
-.game:hover .thumb img.ok{transform:scale(1.08)}
-/* glossy highlight */
-.thumb::before{
-  content:""; position:absolute; left:-10%; right:-10%; top:-6%; height:46%; z-index:2; pointer-events:none;
-  border-radius:0 0 50% 50% / 0 0 100% 100%;
-  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0));
-}
-/* fizz sparkle on hover */
-.thumb::after{
-  content:""; position:absolute; left:0; right:0; top:0; height:200%; z-index:2; pointer-events:none; opacity:0;
-  background-image:
-    radial-gradient(circle at 16% 78%, rgba(255,255,255,.9) 0 1.5px, rgba(255,255,255,.25) 2.5px, transparent 4px),
-    radial-gradient(circle at 38% 40%, rgba(255,255,255,.8) 0 1px, rgba(255,255,255,.2) 2px, transparent 3.5px),
-    radial-gradient(circle at 62% 90%, rgba(255,255,255,.9) 0 2px, rgba(255,255,255,.25) 3px, transparent 5px),
-    radial-gradient(circle at 82% 55%, rgba(255,255,255,.8) 0 1.5px, rgba(255,255,255,.2) 2.5px, transparent 4px),
-    radial-gradient(circle at 50% 18%, rgba(255,255,255,.7) 0 1px, transparent 3px);
-  background-size:100% 50%; background-repeat:repeat-y;
-  transition:opacity .2s;
-}
-.game:hover .thumb::after{opacity:1; animation:sparkUp 1.8s linear infinite}
-.fallback{
-  position:absolute; inset:0; display:flex; flex-direction:column; gap:4px;
-  align-items:center; justify-content:center; color:#8a5a62;
-}
-.fallback .fe{font-size:2.1rem}
-.fallback .fn{
-  font-family:var(--disp); font-weight:600; font-size:1.02rem; color:#c79aa2; max-width:90%; line-height:1.25;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-/* home-made games: no cover art - big emoji tile instead */
-.game.own .thumb{background:radial-gradient(circle at 50% 42%, var(--glow), transparent 72%), linear-gradient(160deg,#3a1520,#14080b)}
-.game.own .fallback .fe{font-size:3.5rem}
-.game.own .fallback .fn{font-size:1.06rem; color:var(--gold)}
-/* bottle-cap badge for home-made games */
-.own-badge{
-  position:absolute; top:8px; right:8px; z-index:3; width:32px; height:32px; border-radius:50%;
-  display:grid; place-items:center; font-size:.8rem; pointer-events:none;
-  background:
-    radial-gradient(circle at 50% 50%, var(--acc-mid) 0 56%, transparent 58%),
-    repeating-conic-gradient(#ffd98f 0 9deg, #d99a45 9deg 18deg);
-  box-shadow:0 3px 10px rgba(0,0,0,.5), 0 0 12px var(--glow);
-  transition:transform .4s var(--spring);
-}
-.game:hover .own-badge{transform:rotate(40deg) scale(1.12)}
-.play{
-  position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(180deg, rgba(10,3,6,0) 30%, rgba(10,3,6,.8));
-  opacity:0; transition:opacity .18s ease;
-}
-.game:hover .play{opacity:1}
-.play span{
-  background:var(--gel); color:#fff; font-family:var(--disp); font-weight:700; font-size:.95rem; letter-spacing:.3px;
-  padding:9px 22px; border-radius:999px; translate:0 12px; transition:translate .3s var(--spring);
-  box-shadow:var(--gelsh); text-shadow:0 1px 2px rgba(60,0,8,.6);
-}
-.game:hover .play span{translate:0 0}
-.meta{display:flex; align-items:center; justify-content:space-between; gap:6px; padding:11px 14px 13px}
-.num{font-family:var(--disp); font-weight:600; font-size:1rem; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.suffix{
-  flex:0 0 auto; font-size:.68rem; color:var(--gold); background:rgba(255,196,107,.09);
-  border:1px solid rgba(255,196,107,.34); padding:2px 9px; border-radius:999px;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;
-}
-/* bubbly favourite heart */
-.favbtn{
-  position:absolute; top:8px; left:8px; z-index:3;
-  width:34px; height:34px; border-radius:50%; font-size:1rem; line-height:1;
-  border:1.5px solid rgba(255,255,255,.4); color:var(--foam); cursor:pointer;
-  background:
-    radial-gradient(circle at 30% 26%, rgba(255,255,255,.55) 0 10%, rgba(255,255,255,.12) 11% 30%, transparent 32%),
-    rgba(20,6,10,.55);
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  opacity:0; transition:opacity .15s, color .15s, border-color .15s, transform .3s var(--spring), background .15s;
-}
-.game:hover .favbtn, .favbtn.on, .favbtn:focus-visible{opacity:1}
-.favbtn:hover{transform:scale(1.2)}
-.favbtn:active{transform:scale(.85)}
-.favbtn.on{
-  color:#fff; border-color:rgba(255,255,255,.7); text-shadow:0 1px 2px rgba(60,0,8,.7);
-  background:
-    radial-gradient(circle at 30% 26%, rgba(255,255,255,.7) 0 10%, rgba(255,255,255,.14) 11% 30%, transparent 32%),
-    radial-gradient(circle at 50% 50%, var(--acc), var(--acc-deep));
-  box-shadow:0 0 14px var(--glow);
-  animation:heartPop .45s var(--spring);
-}
-@keyframes heartPop{0%{transform:scale(.6)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
-
-#empty{display:none; text-align:center; color:var(--muted); margin-top:56px; font-size:1.05rem; line-height:1.7}
-#empty::before{content:"\1F964"; display:block; font-size:3.4rem; margin-bottom:8px; animation:bob 3s ease-in-out infinite}
-#empty b{color:var(--foam)}
-
-/* ---------------- game player ---------------- */
-#player{position:fixed; inset:0; z-index:100; display:none; flex-direction:column; background:#070304}
-#player.active{display:flex}
-.pbar, .bbar{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  padding:10px 14px; background:linear-gradient(180deg,#2a0c14,#16070b);
-  border-bottom:3px solid var(--acc-mid);
-}
-.pbar button, .pbar a{
-  padding:8px 16px; border-radius:999px; border:2px solid var(--line);
-  background:var(--glass),var(--card); color:var(--text); cursor:pointer; font-size:.9rem; text-decoration:none;
-  display:inline-flex; align-items:center; justify-content:center;
-  transition:border-color .15s, background .15s, transform .3s var(--spring); white-space:nowrap;
-}
-.pbar button:hover, .pbar a:hover{border-color:var(--acc); transform:translateY(-2px) scale(1.06)}
-.pbar button:active{transform:scale(.92)}
-.pbar button:disabled{opacity:.32; cursor:default}
-.pbar button:disabled:hover{border-color:var(--line); transform:none}
-.pbar #closeBtn:hover{background:var(--gel); border-color:transparent}
-#pTitle{flex:1 1 140px; text-align:center; font-family:var(--disp); font-weight:600; font-size:1.05rem; min-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-#pTitle .suffix{font-family:var(--body); font-size:.7rem; font-weight:400; margin-left:8px}
-#favBtn.on{color:#fff; background:var(--gel); border-color:transparent; box-shadow:var(--gelsh)}
-#frame{flex:1; width:100%; border:0; background:#000}
-
-/* ---------------- proxy browser ---------------- */
-#browse{position:fixed; inset:0; z-index:90; display:none; flex-direction:column; background:#0b0507}
-#browse.active{display:flex}
-.bbar{gap:7px; padding:9px 12px}
-.bbar button{
-  width:40px; height:40px; border-radius:50%; border:2px solid var(--line);
-  background:var(--glass),var(--card); color:var(--text); cursor:pointer; font-size:.98rem;
-  transition:border-color .15s, background .15s, transform .3s var(--spring); flex:0 0 auto;
-}
-.bbar button:hover{border-color:var(--acc); transform:translateY(-2px) scale(1.1)}
-.bbar button:active{transform:scale(.88)}
-.baddrwrap{
-  flex:1 1 220px; display:flex; align-items:center; gap:8px; min-width:160px;
-  background:var(--glass),var(--panel); border:2px solid var(--ring); border-radius:999px; padding:4px 5px 4px 16px;
-  box-shadow:inset 0 2px 6px rgba(0,0,0,.5);
-}
-.baddrwrap:focus-within{border-color:var(--acc); box-shadow:inset 0 2px 6px rgba(0,0,0,.5), 0 0 0 4px var(--glow-soft)}
-.baddrwrap .lock{font-size:.78rem; opacity:.85}
-#bAddr{flex:1; min-width:0; background:none; border:none; outline:none; color:var(--text); font-size:.92rem; padding:7px 0}
-#bGo{width:auto !important; height:34px !important; padding:0 18px !important; border-radius:999px !important; font-family:var(--disp); font-size:.88rem !important; font-weight:700; background:var(--gel) !important; border-color:transparent !important; color:#fff !important; box-shadow:var(--gelsh); text-shadow:0 1px 2px rgba(60,0,8,.6)}
-#bFrameWrap{flex:1; position:relative; background:#fff}
-#bFrameWrap iframe{position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff}
-
-/* ---------------- settings modal ---------------- */
-#settingsModal{position:fixed; inset:0; z-index:150; display:none; align-items:center; justify-content:center; padding:20px}
-#settingsModal.active{display:flex}
-.sback{position:absolute; inset:0; background:rgba(8,2,4,.74); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
-.spanel{
-  position:relative; width:min(580px,100%); max-height:min(88vh,740px);
-  display:flex; flex-direction:column; overflow:hidden;
-  background:var(--glass),var(--panel); border:2.5px solid var(--ring2); border-radius:32px;
-  box-shadow:0 30px 80px rgba(0,0,0,.65), 0 0 50px var(--glow-soft), inset 0 1px 0 rgba(255,255,255,.12);
-  animation:pop .4s var(--spring);
-}
-@keyframes pop{from{opacity:0; transform:scale(.88) translateY(14px)}to{opacity:1; transform:none}}
-.shead{display:flex; align-items:center; justify-content:space-between; padding:16px 22px; background:linear-gradient(180deg,#2e0d16,rgba(0,0,0,0)); border-bottom:2px dashed var(--ring)}
-.shead h2{font-family:var(--disp); font-size:1.3rem; font-weight:700}
-.shead h2 .accent{color:var(--acc2)}
-#sClose{
-  width:38px; height:38px; border-radius:50%; border:2px solid var(--line);
-  background:var(--glass),var(--card); color:var(--text); cursor:pointer; font-size:.9rem;
-  transition:transform .3s var(--spring), border-color .15s, color .15s;
-}
-#sClose:hover{border-color:var(--err); color:var(--err); transform:rotate(90deg) scale(1.1)}
-.sbody{overflow-y:auto; padding:4px 22px 22px}
-.ssec{padding:16px 0; border-bottom:2px dashed var(--line)}
-.ssec:last-child{border-bottom:none; padding-bottom:6px}
-.ssec h3{font-family:var(--disp); font-size:.82rem; font-weight:600; letter-spacing:1.6px; text-transform:uppercase; color:var(--gold); margin-bottom:12px}
-.srow{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:7px 0}
-.srow .lab{font-size:.95rem}
-.srow .sub{display:block; font-size:.78rem; color:var(--muted); margin-top:2px; font-weight:400}
-.srow.minrow{padding:12px 14px; margin-bottom:12px; background:var(--card); border:2px solid var(--ring); border-radius:18px}
-.srow.minrow .lab{font-weight:600}
-.sbody select{
-  appearance:none; -webkit-appearance:none;
-  padding:9px 34px 9px 16px; border-radius:999px; border:2px solid var(--line);
-  background:var(--card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%23ff6b7a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>') no-repeat right 13px center;
-  color:var(--text); font-size:.88rem; cursor:pointer; outline:none;
-}
-.sbody select:focus{border-color:var(--acc)}
-.swatches{display:flex; gap:10px; flex-wrap:wrap}
-.swatch{
-  display:flex; align-items:center; gap:10px; padding:10px 18px 10px 12px; border-radius:999px;
-  border:2px solid var(--line); background:var(--card); color:var(--text);
-  cursor:pointer; font-family:var(--disp); font-weight:500; font-size:.95rem; transition:border-color .15s, box-shadow .15s, transform .3s var(--spring);
-}
-.swatch:hover{border-color:var(--ring2); transform:translateY(-2px) scale(1.04)}
-.swatch .dot{
-  width:22px; height:22px; border-radius:50%; flex:0 0 auto; box-shadow:inset 0 -3px 4px rgba(0,0,0,.3);
-}
-.swatch[data-t="purple"] .dot{background:radial-gradient(circle at 30% 26%, #fff 0 10%, transparent 12%), linear-gradient(135deg,#9d8cff,#3d27b0)}
-.swatch[data-t="red"] .dot{background:radial-gradient(circle at 30% 26%, #fff 0 10%, transparent 12%), linear-gradient(135deg,#ff3b4e,#b30f1e)}
-.swatch.on{border-color:var(--acc); box-shadow:0 0 0 4px var(--tint)}
-.tgl{
-  position:relative; width:54px; height:30px; border-radius:99px; flex:0 0 auto;
-  background:rgba(0,0,0,.5); border:2px solid var(--line); box-shadow:inset 0 2px 5px rgba(0,0,0,.6); cursor:pointer; transition:background .2s, border-color .2s;
-}
-.tgl::after{
-  content:""; position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%;
-  background:radial-gradient(circle at 32% 28%, #fff 0 12%, #c9a3a6 14%); transition:left .35s var(--spring);
-}
-.tgl.on{background:var(--gel); border-color:transparent}
-.tgl.on::after{left:26px; background:radial-gradient(circle at 32% 28%, #fff 0 14%, #ffe3e6 16%)}
-.wrow{display:flex; gap:8px; width:100%}
-.wrow input{
-  flex:1; min-width:0; padding:9px 16px; border-radius:999px; border:2px solid var(--line);
-  background:var(--card); color:var(--text); font-size:.88rem; outline:none;
-}
-.wrow input:focus{border-color:var(--acc)}
-.wout{display:block; min-height:18px; font-size:.82rem; color:var(--muted); margin-top:8px; word-break:break-all}
-.wout.good{color:#8cf0a0}
-.wout.bad{color:var(--err)}
-.sbtn{
-  padding:9px 18px; border-radius:999px; border:2px solid var(--line);
-  background:var(--glass),var(--card); color:var(--text); font-size:.88rem; cursor:pointer;
-  transition:border-color .15s, background .15s, transform .3s var(--spring);
-}
-.sbtn:hover{border-color:var(--acc); transform:translateY(-2px) scale(1.04)}
-.sbtn:active{transform:scale(.93)}
-.sbtn.danger{color:var(--err); border-color:rgba(255,120,135,.4)}
-.sbtn.danger:hover{background:rgba(255,90,110,.1); border-color:var(--err)}
-.sbtnrow{display:flex; gap:8px; flex-wrap:wrap}
-.about{font-size:.88rem; color:var(--muted); line-height:1.85}
-.about a{color:var(--acc2); text-decoration:none}
-.about a:hover{text-decoration:underline}
-.about b{color:var(--text)}
-
-/* ---------------- misc ---------------- */
-footer{
-  position:relative; margin-top:18px; padding:44px 22px 32px; text-align:center;
-  color:var(--muted); font-size:.84rem; line-height:1.9; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.45));
-}
-footer::before{
-  content:""; position:absolute; left:0; right:0; top:0; height:14px; opacity:.85;
-  background:linear-gradient(var(--acc-deep),var(--liquid-back));
-  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'><path d='M0 14V7Q10 0 20 7T40 7V14Z'/></svg>") repeat-x 0 0/40px 14px;
-  mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'><path d='M0 14V7Q10 0 20 7T40 7V14Z'/></svg>") repeat-x 0 0/40px 14px;
-}
-footer b{color:var(--foam); font-family:var(--disp)}
-footer a{color:var(--acc2); text-decoration:none}
-footer a:hover{text-decoration:underline}
-#toTop{
-  position:fixed; right:22px; bottom:22px; z-index:60;
-  width:48px; height:48px; border-radius:50%; border:none; color:#5a0610; font-size:1.2rem; font-weight:700; cursor:pointer;
-  background:
-    radial-gradient(circle at 50% 50%, var(--foam) 0 58%, transparent 60%),
-    repeating-conic-gradient(var(--gold) 0 9deg, var(--caramel) 9deg 18deg);
-  box-shadow:0 6px 18px rgba(0,0,0,.5), 0 0 16px var(--glow-soft);
-  opacity:0; pointer-events:none; transform:scale(.6); transition:opacity .2s, transform .35s var(--spring);
-}
-#toTop.show{opacity:1; pointer-events:auto; transform:none}
-#toTop.show:hover{transform:translateY(-4px) rotate(-12deg) scale(1.1)}
-#toast{
-  position:fixed; left:50%; bottom:26px; translate:-50% 24px; z-index:200;
-  padding:11px 24px; border-radius:999px; border:2px solid rgba(255,255,255,.35);
-  background:var(--gel); color:#fff; font-family:var(--disp); font-weight:500; font-size:.95rem; text-shadow:0 1px 2px rgba(60,0,8,.6);
-  box-shadow:var(--gelsh), 0 14px 34px rgba(0,0,0,.5); max-width:calc(100vw - 32px);
-  opacity:0; pointer-events:none; transition:opacity .2s, translate .4s var(--spring);
-}
-#toast.show{opacity:1; translate:-50% 0}
-::-webkit-scrollbar{width:11px; height:11px}
-::-webkit-scrollbar-thumb{background:var(--acc-deep); border-radius:8px; border:2px solid var(--bg)}
-::-webkit-scrollbar-thumb:hover{background:var(--acc-mid)}
-::-webkit-scrollbar-track{background:transparent}
-body.no-anim *, body.no-anim *::before, body.no-anim *::after{animation:none !important; transition:none !important}
-@media (max-width:760px){
-  #topbar{padding:10px 14px 11px; gap:10px}
-  #tagline{display:none}
-  .brand h1{font-size:1.15rem}
-  #settingsBtn{order:2}
-  .nav{order:3; width:100%; justify-content:center}
-  .navlink{flex:1 0 auto; justify-content:center; padding:8px 10px}
-  #libTools{order:4; width:100%}
-  .searchwrap{max-width:none; flex:1 1 100%}
-  .wrap{padding:20px 14px 70px}
-  .featured{padding:6px 14px 0}
-  #view-home .hero{padding:30px 16px 36px}
-  .grid{gap:14px}
-  .game{border-radius:22px}
-  .sechead h2{font-size:1.15rem}
-  .wave{height:44px}
-}
-@media (max-width:520px){
-  .nav{gap:2px; padding:4px}
-  .navlink{padding:8px 9px; gap:4px; font-size:.86rem}
-  .navlink.active::before{display:none}
-  .psearch{padding:7px 7px 7px 16px; gap:6px}
-  .psearch svg{display:none}
-  .enginesel{max-width:38%; padding:9px 26px 9px 12px}
-  .gobtn{width:48px; height:48px}
-  .srow{flex-wrap:wrap}
-  .spanel{border-radius:26px}
-  .cta{padding:14px 28px}
-}
-@media (max-width:380px){
-  .navlink{padding:8px 7px; font-size:.8rem; gap:3px}
-}
-@media (hover:none){
-  .favbtn{opacity:1}
-}
-@media (prefers-reduced-motion: reduce){
-  html{scroll-behavior:auto}
-  *, *::before, *::after{animation:none !important; transition:none !important}
-  #fizz, #pops{display:none}
-}
-
-/* =====================================================================
-   Minimalistic Site (Less LAG): html.minimal
-   Flat solid colours, 1px borders, small radii, system font, no animation,
-   no gradients/glows/shadows/blur/masks and no decorative layers.
-   ===================================================================== */
-html.minimal{
-  scroll-behavior:auto;
-  --sys:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --disp:var(--sys); --body:var(--sys);
-  --gel:var(--acc-mid); --gelsh:none; --glass:none;
-}
-html.minimal *, html.minimal *::before, html.minimal *::after{
-  animation:none !important; transition:none !important;
-  box-shadow:none !important; text-shadow:none !important;
-  filter:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-  -webkit-mask:none !important; mask:none !important;
-}
-html.minimal *:hover, html.minimal *:active{transform:none !important}
-/* decorative layers */
-html.minimal #fizz, html.minimal #pops, html.minimal .hero-bubbles, html.minimal .wave, html.minimal .spark,
-html.minimal .aibub, html.minimal #topbar::after, html.minimal footer::before, html.minimal .sechead::after,
-html.minimal .cta.red::before, html.minimal .navlink.active::before, html.minimal .thumb::before, html.minimal .thumb::after,
-html.minimal .pstatus:not(:empty)::before, html.minimal #empty::before{display:none !important}
-/* background and header */
-html.minimal body{background:var(--bg); background-image:none; background-attachment:scroll}
-html.minimal #topbar{background:var(--bg2); border-bottom:1px solid var(--acc-mid)}
-html.minimal .cap{background:none; width:40px; height:40px; border-radius:0}
-html.minimal .vchip{background:var(--acc-mid); translate:none}
-html.minimal .nav{background:var(--bg); border:1px solid var(--line)}
-html.minimal .navlink.active, html.minimal .tool.on, html.minimal #favBtn.on, html.minimal .cta.red{background:var(--acc-mid); border-color:var(--acc-mid); color:#fff}
-html.minimal .pool, html.minimal footer, html.minimal .shead{background:none}
-html.minimal .play{background:rgba(10,3,6,.55)}
-html.minimal .aiload{background:var(--bg)}
-html.minimal .aiload.err code{border-radius:6px}
-/* hero */
-html.minimal .hero-logo .logo-img{filter:none}
-html.minimal .hero h2 span, html.minimal body[data-theme="purple"] .hero h2 span{
-  background:none; -webkit-background-clip:border-box; background-clip:border-box;
-  -webkit-text-fill-color:currentColor; color:var(--acc2);
-}
-html.minimal #pBar{background:var(--acc)}
-html.minimal .gobtn, html.minimal #bGo{background:var(--acc-mid) !important}
-/* flat controls: small radii, 1px borders */
-html.minimal .nav, html.minimal .navlink, html.minimal #search, html.minimal select#sort, html.minimal .tool,
-html.minimal #settingsBtn, html.minimal .psearch, html.minimal .enginesel, html.minimal .gobtn, html.minimal .chip,
-html.minimal .cta, html.minimal .stat, html.minimal .eyebrow, html.minimal .suffix, html.minimal #allCount,
-html.minimal #clearRecent, html.minimal .pbar button, html.minimal .pbar a, html.minimal .bbar button,
-html.minimal .baddrwrap, html.minimal .sbtn, html.minimal .swatch, html.minimal .wrow input, html.minimal .sbody select,
-html.minimal .vchip, html.minimal .favbtn, html.minimal .play span, html.minimal #sClose, html.minimal #toast,
-html.minimal .bar-track, html.minimal #pBar{border-radius:8px}
-html.minimal #bGo{border-radius:8px !important}
-html.minimal .nav, html.minimal #search, html.minimal select#sort, html.minimal .tool, html.minimal .psearch,
-html.minimal .enginesel, html.minimal .cta, html.minimal .chip, html.minimal .pbar button, html.minimal .pbar a,
-html.minimal .bbar button, html.minimal .baddrwrap, html.minimal .sbtn, html.minimal .swatch, html.minimal .wrow input,
-html.minimal .sbody select, html.minimal #sClose, html.minimal #toast, html.minimal .game, html.minimal .spanel{border-width:1px}
-html.minimal .psearch{border-color:var(--ring2)}
-html.minimal .chip, html.minimal .stat, html.minimal .eyebrow{background:var(--card)}
-html.minimal .stat, html.minimal .eyebrow, html.minimal .suffix, html.minimal #allCount{border-style:solid; border-width:1px}
-html.minimal .navlink{font-weight:500}
-html.minimal .sechead .accent{background:var(--acc-mid); border-radius:6px; width:28px; height:28px}
-html.minimal .sechead h2, html.minimal .brand h1{font-weight:600}
-/* library cards: cheap to render and to lay out */
-html.minimal .game{
-  border-radius:8px; background:var(--card); opacity:1; translate:none;
-  content-visibility:auto; contain-intrinsic-size:auto 164px auto 210px;
-}
-html.minimal body[data-cards="s"] .game{contain-intrinsic-size:auto 122px auto 168px}
-html.minimal body[data-cards="l"] .game{contain-intrinsic-size:auto 214px auto 262px}
-html.minimal .game:hover{border-color:var(--acc)}
-html.minimal .thumb, html.minimal .game.own .thumb, html.minimal .game.in .thumb.ld{background:var(--card2)}
-html.minimal .game:hover .thumb img.ok{transform:none}
-html.minimal .own-badge{background:var(--acc-mid); border-radius:6px}
-html.minimal .favbtn{background:rgba(20,6,10,.82); border-width:1px; border-radius:8px}
-html.minimal .favbtn.on{background:var(--acc-mid)}
-/* overlays, modal */
-html.minimal .pbar, html.minimal .bbar{background:var(--panel); border-bottom:1px solid var(--acc-mid)}
-html.minimal .spanel{background:var(--panel); border:1px solid var(--ring2); border-radius:10px}
-html.minimal .ssec, html.minimal .shead{border-bottom:1px solid var(--line)}
-html.minimal .ssec:last-child{border-bottom:none}
-html.minimal .sback{background:rgba(8,2,4,.82)}
-html.minimal .srow.minrow{border:1px solid var(--ring); border-radius:8px; background:var(--card)}
-html.minimal .tgl{border-radius:99px; border-width:1px; background:var(--bg)}
-html.minimal .tgl::after{background:#c9a3a6}
-html.minimal .tgl.on{background:var(--acc-mid); border-color:var(--acc-mid)}
-html.minimal .tgl.on::after{background:#fff}
-html.minimal .swatch .dot{background:var(--acc-mid)}
-html.minimal .swatch[data-t="purple"] .dot{background:#5e46e8}
-html.minimal .swatch[data-t="red"] .dot{background:#e11d2e}
-html.minimal .swatch.on{border-color:var(--acc)}
-html.minimal #toast{background:var(--acc-mid)}
-html.minimal #toTop{background:var(--acc-mid); color:#fff; border-radius:8px; transform:none}
-html.minimal #toTop:not(.show){display:none}
-html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
-<body data-view="home">
+<body data-view="home" data-cards="m">
 
-<div id="fizz" aria-hidden="true"></div>
-<div id="pops" aria-hidden="true"></div>
+<!-- icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-reload" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.52.85l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5z"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol>
+    <symbol id="i-gamepad" viewBox="0 0 24 24"><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59C2.6 9.42 2 14.46 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.41-1.41A2 2 0 0 1 9.83 16h4.34a2 2 0 0 1 1.42.59L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.55-.6-6.58-.69-7.26A4 4 0 0 0 17.32 5z"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  </defs>
+</svg>
 
 <header id="topbar">
-  <div class="brand" id="brandHome">
-    <span class="cap"><svg class="logo-img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- bubbles -->
-  <circle cx="82" cy="148" r="6" fill="var(--acc, #a855f7)"/>
-  <circle cx="106" cy="198" r="13" fill="none" stroke="var(--acc, #a855f7)" stroke-width="7"/>
-  <circle cx="430" cy="96" r="10" fill="none" stroke="var(--acc, #a855f7)" stroke-width="6"/>
-  <circle cx="396" cy="148" r="17" fill="none" stroke="var(--acc, #a855f7)" stroke-width="8"/>
-  <!-- body: dark flask with accent outline -->
-  <path d="M215 86 L215 168 C215 200 157 208 157 245 L157 432 Q157 468 192 468 L320 468 Q355 468 355 432 L355 245 C355 208 297 200 297 168 L297 86 Z" fill="#171219" stroke="var(--acc, #a855f7)" stroke-width="11" stroke-linejoin="round"/>
-  <!-- label band -->
-  <rect x="152" y="305" width="208" height="107" fill="var(--acc, #a855f7)"/>
-  <!-- star -->
-  <path d="M256 307 L268.3 340 L303.6 341.6 L276 363.5 L285.4 397.4 L256 378 L226.6 397.4 L236 363.5 L208.4 341.6 L243.7 340 Z" fill="#0d0b10"/>
-  <!-- highlight stripe -->
-  <rect x="181" y="232" width="21" height="58" rx="10" fill="#c9c9d1"/>
-  <!-- cap -->
-  <rect x="205" y="40" width="102" height="52" rx="14" fill="var(--acc, #a855f7)" stroke="#171219" stroke-width="8"/>
-  <rect x="226" y="60" width="60" height="12" rx="6" fill="var(--acc-deep, #6b21a8)"/>
-</svg></span>
-    <div class="brandtext">
-      <h1>Julmust <span>Arcade</span></h1>
-      <p id="tagline"></p>
-    </div>
-    <span class="vchip">V67</span>
-  </div>
+  <button type="button" class="brand" id="brandHome" aria-label="Julmust home">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="9" fill="#e11d2e"/>
+      <path d="M12 9.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L13.5 8.64A1 1 0 0 0 12 9.5z" fill="#fff"/>
+    </svg>
+    <span class="brand-name">Julmust</span>
+  </button>
+
   <nav class="nav" aria-label="Sections">
-    <button class="navlink active" data-nav="home">Home</button>
-    <button class="navlink" data-nav="library">Library</button>
-    <button class="navlink" data-nav="ai">AI <span class="spark" aria-hidden="true">&#10022;</span></button>
-    <button class="navlink" data-nav="movies"><span class="nico" aria-hidden="true">&#127916;</span>Movies</button>
-    <button class="navlink" data-nav="music"><span class="nico" aria-hidden="true">&#127925;</span>Music</button>
+    <button type="button" class="navlink active" data-nav="home">Home</button>
+    <button type="button" class="navlink" data-nav="library">Games</button>
+    <button type="button" class="navlink" data-nav="movies">Movies</button>
+    <button type="button" class="navlink" data-nav="music">Music</button>
+    <button type="button" class="navlink" data-nav="ai">AI</button>
   </nav>
-  <button id="settingsBtn" class="tool" title="Settings" aria-label="Settings">&#9881;&#65039;</button>
-  <div class="tools" id="libTools">
-    <div class="searchwrap">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="search" type="search" placeholder="Search games&#8230;" aria-label="Search games" autocomplete="off">
-    </div>
-    <select id="sort" title="Sort games" aria-label="Sort games">
-      <option value="new">Newest first</option>
-      <option value="old">Oldest first</option>
-      <option value="az">A &#8594; Z</option>
-      <option value="za">Z &#8594; A</option>
-      <option value="rnd">Shuffle</option>
-    </select>
-    <button id="favToggle" class="tool" title="Show favorites only">&#9829; <b id="favCount">0</b></button>
-    <button id="randomBtn" class="tool" title="Play a random game">&#127922;</button>
+
+  <div class="top-actions">
+    <button type="button" id="searchBtn" class="iconbtn searchbtn" title="Search games (/)" aria-label="Search games">
+      <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+      <span class="lbl">Search</span><kbd>/</kbd>
+    </button>
+    <button type="button" id="settingsBtn" class="iconbtn" title="Settings" aria-label="Settings">
+      <svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg>
+    </button>
   </div>
 </header>
 
 <main>
-  <!-- ============ HOME (greeting + proxy) ============ -->
+  <!-- ============ HOME ============ -->
   <section id="view-home" class="view active">
     <div class="hero">
-      <div class="hero-bubbles" aria-hidden="true">
-      <i style="--x:6%;--y:14%;--s:20px;--d:3.6s"></i>
-      <i style="--x:88%;--y:10%;--s:14px;--d:4.4s"></i>
-      <i style="--x:14%;--y:46%;--s:10px;--d:3.1s"></i>
-      <i style="--x:82%;--y:40%;--s:24px;--d:5.2s"></i>
-      <i style="--x:4%;--y:78%;--s:16px;--d:4.0s"></i>
-      <i style="--x:93%;--y:72%;--s:12px;--d:3.4s"></i>
-      <i style="--x:24%;--y:8%;--s:8px;--d:2.9s"></i>
-      <i style="--x:72%;--y:6%;--s:9px;--d:3.8s"></i>
-      </div>
-      <div class="hero-logo"><svg class="logo-img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- bubbles -->
-  <circle cx="82" cy="148" r="6" fill="var(--acc, #a855f7)"/>
-  <circle cx="106" cy="198" r="13" fill="none" stroke="var(--acc, #a855f7)" stroke-width="7"/>
-  <circle cx="430" cy="96" r="10" fill="none" stroke="var(--acc, #a855f7)" stroke-width="6"/>
-  <circle cx="396" cy="148" r="17" fill="none" stroke="var(--acc, #a855f7)" stroke-width="8"/>
-  <!-- body: dark flask with accent outline -->
-  <path d="M215 86 L215 168 C215 200 157 208 157 245 L157 432 Q157 468 192 468 L320 468 Q355 468 355 432 L355 245 C355 208 297 200 297 168 L297 86 Z" fill="#171219" stroke="var(--acc, #a855f7)" stroke-width="11" stroke-linejoin="round"/>
-  <!-- label band -->
-  <rect x="152" y="305" width="208" height="107" fill="var(--acc, #a855f7)"/>
-  <!-- star -->
-  <path d="M256 307 L268.3 340 L303.6 341.6 L276 363.5 L285.4 397.4 L256 378 L226.6 397.4 L236 363.5 L208.4 341.6 L243.7 340 Z" fill="#0d0b10"/>
-  <!-- highlight stripe -->
-  <rect x="181" y="232" width="21" height="58" rx="10" fill="#c9c9d1"/>
-  <!-- cap -->
-  <rect x="205" y="40" width="102" height="52" rx="14" fill="var(--acc, #a855f7)" stroke="#171219" stroke-width="8"/>
-  <rect x="226" y="60" width="60" height="12" rx="6" fill="var(--acc-deep, #6b21a8)"/>
-</svg></div>
-      <div class="eyebrow"><span class="spark" aria-hidden="true">&#10022;</span> Crack open a cold one <span class="spark" aria-hidden="true">&#10022;</span></div>
-      <h2><span>JULMUST</span> <span>ARCADE</span></h2>
-      <p class="hero-tag">Play <b id="heroCount">&#8230;</b> games, or surf the web &#8212; unblocked. No games gone flat.</p>
+      <p class="kicker">Games &middot; Movies &middot; Music &middot; AI</p>
+      <h2>One hub for <span class="hl">everything.</span></h2>
+      <p class="hero-tag">Play <b id="heroCount">&hellip;</b> games, stream movies and music, ask the AI, or browse the web &mdash; all in one place.</p>
 
-      <form id="pForm" style="width:100%;display:flex;justify-content:center">
+      <form id="pForm" class="pform">
         <div class="psearch">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
           <input id="pInput" type="text" placeholder="Search the web or enter a URL" aria-label="Search the web or enter a URL" autocomplete="off" spellcheck="false">
           <select id="pEngine" class="enginesel" title="Search engine" aria-label="Search engine">
             <option value="https://html.duckduckgo.com/html/?q=%s">DuckDuckGo</option>
@@ -974,67 +99,122 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
             <option value="https://www.bing.com/search?q=%s">Bing</option>
             <option value="https://www.mojeek.com/search?q=%s">Mojeek</option>
           </select>
-          <button id="pGo" type="submit" class="gobtn" title="Go" aria-label="Go">&#8599;</button>
+          <button id="pGo" type="submit" class="gobtn" title="Go" aria-label="Go">
+            <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+          </button>
         </div>
       </form>
 
       <div id="pStatus" class="pstatus" role="status"></div>
       <div class="bar-track" id="pBarTrack"><div id="pBar"></div></div>
-      <p id="pError" class="perror"></p>
+      <p id="pError" class="perror" role="alert"></p>
 
-      <div class="chips">
-        <button type="button" class="chip" data-url="https://www.youtube.com">&#9654;&#65039; YouTube</button>
-        <button type="button" class="chip" data-url="https://www.tiktok.com">&#127925; TikTok</button>
-        <button type="button" class="chip" data-url="https://www.instagram.com">&#128247; Instagram</button>
-        <button type="button" class="chip" data-url="https://discord.com">&#127918; Discord</button>
-        <button type="button" class="chip" data-url="https://www.reddit.com">&#128126; Reddit</button>
-        <button type="button" class="chip" data-url="https://www.wikipedia.org">&#128218; Wikipedia</button>
+      <div class="chips" aria-label="Quick links">
+        <button type="button" class="chip" data-url="https://www.youtube.com">YouTube</button>
+        <button type="button" class="chip" data-url="https://www.tiktok.com">TikTok</button>
+        <button type="button" class="chip" data-url="https://www.instagram.com">Instagram</button>
+        <button type="button" class="chip" data-url="https://discord.com">Discord</button>
+        <button type="button" class="chip" data-url="https://www.reddit.com">Reddit</button>
+        <button type="button" class="chip" data-url="https://www.wikipedia.org">Wikipedia</button>
       </div>
 
-      <div class="homeCtas">
-        <button id="enterLib" class="cta red">&#129380; Enter the Library</button>
-      </div>
-
-      <div class="homeStats">
-        <span class="stat"><b id="statGames">0</b> games</span>
-        <span class="stat"><b id="statCovers">0</b> with covers</span>
-        <span class="stat"><b id="statFavs">0</b> favorites</span>
-        <span class="stat">proxy: <b>Scramjet</b></span>
+      <div class="cta-row">
+        <button id="enterLib" type="button" class="btn btn-primary btn-lg">Browse games</button>
+        <button id="heroRandom" type="button" class="btn btn-lg">
+          <svg class="ico" aria-hidden="true"><use href="#i-shuffle"/></svg> Random game
+        </button>
       </div>
     </div>
 
-    <div class="liquid">
-      <div class="wave" aria-hidden="true">
-        <svg class="back" viewBox="0 0 1440 64" preserveAspectRatio="none"><path d="M0 32Q90 0 180 32T360 32T540 32T720 32T900 32T1080 32T1260 32T1440 32V64H0Z"/></svg>
-        <svg viewBox="0 0 1440 64" preserveAspectRatio="none"><path d="M0 32Q90 0 180 32T360 32T540 32T720 32T900 32T1080 32T1260 32T1440 32V64H0Z"/></svg>
+    <div class="wrap home-wrap">
+      <div class="tiles">
+        <a class="tile" href="#library">
+          <span class="tile-ico"><svg class="ico" aria-hidden="true"><use href="#i-gamepad"/></svg></span>
+          <span class="tile-title">Games</span>
+          <span class="tile-desc"><b id="tileGames">0</b> browser games, from classics to home-made.</span>
+          <svg class="ico tile-go" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+        </a>
+        <a class="tile" href="#movies">
+          <span class="tile-ico"><svg class="ico" aria-hidden="true"><use href="#i-film"/></svg></span>
+          <span class="tile-title">Movies</span>
+          <span class="tile-desc">Stream films and shows through the built-in proxy.</span>
+          <svg class="ico tile-go" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+        </a>
+        <a class="tile" href="#music">
+          <span class="tile-ico"><svg class="ico" aria-hidden="true"><use href="#i-music"/></svg></span>
+          <span class="tile-title">Music</span>
+          <span class="tile-desc">Listen to anything on SoundCloud, unblocked.</span>
+          <svg class="ico tile-go" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+        </a>
+        <a class="tile" href="#ai">
+          <span class="tile-ico"><svg class="ico" aria-hidden="true"><use href="#i-spark"/></svg></span>
+          <span class="tile-title">AI</span>
+          <span class="tile-desc">Chat with Mustiga Mannen for answers, code and ideas.</span>
+          <svg class="ico tile-go" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+        </a>
       </div>
-      <div class="pool">
-        <div class="featured" id="featSec">
-          <div class="sechead"><h2><span class="accent">&#9733;</span> Home made games</h2></div>
-          <div id="featRow" class="row"></div>
+
+      <section id="recentSec" class="block" hidden>
+        <div class="sechead">
+          <h2>Continue playing</h2>
+          <button id="clearRecent" type="button" class="linkbtn">Clear</button>
         </div>
-      </div>
+        <div id="recentRow" class="row"></div>
+      </section>
+
+      <section id="featSec" class="block" hidden>
+        <div class="sechead">
+          <h2>Featured</h2>
+          <span class="sub">Home-made games</span>
+        </div>
+        <div id="featRow" class="row"></div>
+      </section>
+
+      <p class="statline">
+        <span><b id="statGames">0</b> games</span>
+        <span><b id="statCovers">0</b> with covers</span>
+        <span><b id="statFavs">0</b> favorites</span>
+        <span>Proxy: <b>Scramjet</b></span>
+      </p>
     </div>
   </section>
 
   <!-- ============ LIBRARY ============ -->
   <section id="view-library" class="view">
     <div class="wrap">
-      <section id="recentSec" hidden>
-        <div class="sechead">
-          <h2><span class="accent">&#9654;</span> Continue playing</h2>
-          <button id="clearRecent">Clear</button>
+      <div class="toolbar">
+        <div class="searchwrap">
+          <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="search" type="search" placeholder="Search games" aria-label="Search games" autocomplete="off">
         </div>
-        <div id="recentRow" class="row"></div>
-      </section>
-      <section id="ownSec" hidden>
-        <div class="sechead">
-          <h2><span class="accent">&#127968;</span> Home made games</h2>
+        <select id="sort" title="Sort games" aria-label="Sort games">
+          <option value="new">Newest first</option>
+          <option value="old">Oldest first</option>
+          <option value="az">A &#8594; Z</option>
+          <option value="za">Z &#8594; A</option>
+          <option value="rnd">Shuffle</option>
+        </select>
+        <button type="button" id="favToggle" class="tool" title="Show favorites only" aria-pressed="false">
+          <svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg> <b id="favCount">0</b>
+        </button>
+        <button type="button" id="randomBtn" class="tool" title="Play a random game" aria-label="Play a random game">
+          <svg class="ico" aria-hidden="true"><use href="#i-shuffle"/></svg>
+        </button>
+        <div class="seg" id="sizeSeg" role="group" aria-label="Card size">
+          <button type="button" data-size="s" title="Small cards" aria-pressed="false">S</button>
+          <button type="button" data-size="m" title="Medium cards" aria-pressed="false">M</button>
+          <button type="button" data-size="l" title="Large cards" aria-pressed="false">L</button>
         </div>
+      </div>
+
+      <section id="ownSec" class="block" hidden>
+        <div class="sechead"><h2>Home-made</h2></div>
         <div id="ownRow" class="row"></div>
       </section>
+
       <div class="sechead" id="allHead">
-        <h2><span class="accent">&#127918;</span> All games <span id="allCount"></span></h2>
+        <h2>All games</h2>
+        <span id="allCount" class="count"></span>
       </div>
       <div id="grid" class="grid"></div>
       <p id="empty"></p>
@@ -1043,21 +223,21 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
 
   <!-- ============ AI (Jarvis) ============ -->
   <section id="view-ai" class="view">
-    <div class="aiload" id="aiLoad"><div class="aibub"></div><div>Pouring Jarvis&#8230;</div></div>
-    <iframe id="aiFrame" title="Jarvis AI" allow="clipboard-write; microphone; fullscreen"></iframe>
+    <div class="fload" id="aiLoad"><div class="spin"></div><div>Loading AI&hellip;</div></div>
+    <iframe id="aiFrame" title="AI assistant" allow="clipboard-write; microphone; fullscreen"></iframe>
   </section>
 
   <section id="view-movies" class="view">
     <div class="ptwrap">
       <div class="ptmount" id="ptMount-movies"></div>
-      <div class="aiload" id="ptLoad-movies" data-pt="movies"><div class="aibub"></div><div>Pouring Movies&#8230;</div></div>
+      <div class="fload" id="ptLoad-movies" data-pt="movies"><div class="spin"></div><div>Loading Movies&hellip;</div></div>
     </div>
   </section>
 
   <section id="view-music" class="view">
     <div class="ptwrap">
       <div class="ptmount" id="ptMount-music"></div>
-      <div class="aiload" id="ptLoad-music" data-pt="music"><div class="aibub"></div><div>Pouring Music&#8230;</div></div>
+      <div class="fload" id="ptLoad-music" data-pt="music"><div class="spin"></div><div>Loading Music&hellip;</div></div>
     </div>
   </section>
 </main>
@@ -1065,18 +245,18 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
 <!-- ============ PROXY BROWSER ============ -->
 <div id="browse">
   <div class="bbar">
-    <button id="bBack" title="Back">&#8592;</button>
-    <button id="bFwd" title="Forward">&#8594;</button>
-    <button id="bReload" title="Reload">&#10227;</button>
-    <button id="bHome" title="Julmust Arcade home">&#9875;</button>
+    <button type="button" id="bBack" title="Back" aria-label="Back"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>
+    <button type="button" id="bFwd" title="Forward" aria-label="Forward"><svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+    <button type="button" id="bReload" title="Reload" aria-label="Reload"><svg class="ico" aria-hidden="true"><use href="#i-reload"/></svg></button>
+    <button type="button" id="bHome" title="Julmust home" aria-label="Julmust home"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg></button>
     <form id="bForm" class="baddrwrap">
-      <span class="lock">&#128274;</span>
-      <input id="bAddr" type="text" placeholder="Search or enter address" autocomplete="off" spellcheck="false">
+      <svg class="ico lock" aria-hidden="true"><use href="#i-lock"/></svg>
+      <input id="bAddr" type="text" placeholder="Search or enter address" aria-label="Address" autocomplete="off" spellcheck="false">
       <button id="bGo" type="submit">Go</button>
     </form>
-    <button id="bNew" title="Open for real (without proxy)">&#8599;</button>
-    <button id="bFs" title="Fullscreen">&#9974;</button>
-    <button id="bExit" title="Close browser (Esc)">&#10005;</button>
+    <button type="button" id="bNew" title="Open for real (without proxy)" aria-label="Open without proxy"><svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></button>
+    <button type="button" id="bFs" title="Fullscreen" aria-label="Fullscreen"><svg class="ico" aria-hidden="true"><use href="#i-expand"/></svg></button>
+    <button type="button" id="bExit" title="Close browser (Esc)" aria-label="Close browser"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <div id="bFrameWrap"></div>
 </div>
@@ -1084,44 +264,34 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
 <!-- ============ GAME PLAYER ============ -->
 <div id="player">
   <div class="pbar">
-    <button id="backBtn">&#8592; Library</button>
-    <button id="prevBtn" title="Previous (left arrow)">&#8249;</button>
+    <button type="button" id="backBtn" class="pb-text" title="Back"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg><span>Back</span></button>
+    <span class="pb-sep" aria-hidden="true"></span>
+    <button type="button" id="prevBtn" title="Previous (left arrow)" aria-label="Previous game"><svg class="ico" aria-hidden="true"><use href="#i-chev-left"/></svg></button>
     <div id="pTitle"></div>
-    <button id="nextBtn" title="Next (right arrow)">&#8250;</button>
-    <span style="flex:1"></span>
-    <button id="favBtn" title="Toggle favorite (star)">&#9734;</button>
-    <button id="fsBtn" title="Fullscreen (F)">&#9974;</button>
-    <a id="newTabBtn" href="#" target="_blank" title="Open in new tab">&#8599;</a>
-    <button id="copyBtn" title="Copy link to this game">&#8904;</button>
-    <button id="closeBtn" title="Close (Esc)">&#10005;</button>
+    <button type="button" id="nextBtn" title="Next (right arrow)" aria-label="Next game"><svg class="ico" aria-hidden="true"><use href="#i-chev-right"/></svg></button>
+    <span class="pb-fill"></span>
+    <button type="button" id="favBtn" title="Toggle favorite" aria-label="Toggle favorite" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg></button>
+    <button type="button" id="fsBtn" title="Fullscreen (F)" aria-label="Fullscreen"><svg class="ico" aria-hidden="true"><use href="#i-expand"/></svg></button>
+    <a id="newTabBtn" href="#" target="_blank" rel="noopener" title="Open in new tab" aria-label="Open in new tab"><svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a>
+    <button type="button" id="copyBtn" title="Copy link to this game" aria-label="Copy link"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></button>
+    <button type="button" id="closeBtn" title="Close (Esc)" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
-  <iframe id="frame" allow="fullscreen; autoplay; gamepad; pointer-lock; clipboard-write"></iframe>
+  <iframe id="frame" title="Game" allow="fullscreen; autoplay; gamepad; pointer-lock; clipboard-write"></iframe>
 </div>
 
 <!-- ============ SETTINGS ============ -->
-<div id="settingsModal" role="dialog" aria-modal="true" aria-label="Settings">
+<div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
   <div class="sback"></div>
   <div class="spanel">
     <div class="shead">
-      <h2><span class="accent">&#9881;</span> Settings</h2>
-      <button id="sClose" title="Close (Esc)" aria-label="Close settings">&#10005;</button>
+      <h2 id="settingsTitle">Settings</h2>
+      <button type="button" id="sClose" title="Close (Esc)" aria-label="Close settings"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="sbody">
       <section class="ssec">
-        <h3>Appearance</h3>
-        <div class="srow minrow">
-          <span class="lab">Minimalistic Site (Less LAG) <span class="sub">Strips bubbles, gradients, glows and animations for maximum speed</span></span>
-          <button id="sMinimal" class="tgl" type="button" role="switch" aria-checked="false" aria-label="Toggle minimalistic site"></button>
-        </div>
-        <div class="swatches">
-          <button type="button" class="swatch" data-t="red"><span class="dot"></span>Cherry Cola</button>
-          <button type="button" class="swatch" data-t="purple"><span class="dot"></span>Blueberry Soda</button>
-        </div>
-      </section>
-      <section class="ssec">
         <h3>Library</h3>
         <div class="srow">
-          <span class="lab">Card size</span>
+          <label class="lab" for="sCards">Card size</label>
           <select id="sCards">
             <option value="s">Small</option>
             <option value="m">Medium</option>
@@ -1129,21 +299,17 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
           </select>
         </div>
         <div class="srow">
-          <span class="lab">Animations <span class="sub">Bubbles, wobbles, fades and the floating logo</span></span>
-          <button id="sAnim" class="tgl" type="button" aria-label="Toggle animations"></button>
-        </div>
-        <div class="srow">
-          <span class="lab">Open on <span class="sub">Which page the site starts on</span></span>
+          <label class="lab" for="sLanding">Open on <span class="sub">Which page the site starts on</span></label>
           <select id="sLanding">
             <option value="home">Home</option>
-            <option value="library">Library</option>
+            <option value="library">Games</option>
           </select>
         </div>
       </section>
       <section class="ssec">
         <h3>Proxy</h3>
         <div class="srow">
-          <span class="lab">Search engine</span>
+          <label class="lab" for="sEngine">Search engine</label>
           <select id="sEngine">
             <option value="https://html.duckduckgo.com/html/?q=%s">DuckDuckGo</option>
             <option value="https://search.brave.com/search?q=%s">Brave</option>
@@ -1151,29 +317,29 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
             <option value="https://www.mojeek.com/search?q=%s">Mojeek</option>
           </select>
         </div>
-        <div class="srow" style="flex-direction:column;align-items:stretch;gap:8px">
-          <span class="lab">Wisp server <span class="sub">Leave empty to use the built-in server</span></span>
+        <div class="srow col">
+          <label class="lab" for="wispInput">Wisp server <span class="sub">Leave empty to use the built-in server</span></label>
           <div class="wrow">
             <input id="wispInput" type="text" placeholder="wss://your-server.example/wisp/" spellcheck="false" autocomplete="off">
-            <button id="wispTest" class="sbtn" type="button">Test</button>
+            <button id="wispTest" class="btn" type="button">Test</button>
           </div>
           <span id="wispNow" class="wout"></span>
-          <span id="wispTestOut" class="wout"></span>
+          <span id="wispTestOut" class="wout" role="status"></span>
         </div>
       </section>
       <section class="ssec">
         <h3>Data</h3>
-        <div class="sbtnrow">
-          <button id="sClearRecent" class="sbtn" type="button">Clear recently played</button>
-          <button id="sClearFavs" class="sbtn" type="button">Clear favorites</button>
-          <button id="sReset" class="sbtn danger" type="button">Reset everything</button>
+        <div class="btnrow">
+          <button id="sClearRecent" class="btn" type="button">Clear recently played</button>
+          <button id="sClearFavs" class="btn" type="button">Clear favorites</button>
+          <button id="sReset" class="btn danger" type="button">Reset everything</button>
         </div>
       </section>
       <section class="ssec">
         <h3>About</h3>
         <p class="about">
-          &#9875; <b>Julmust Arcade V67</b> &#8212; <span id="sCount"></span> games and an unblocked browser, all in one place.<br>
-          Shortcuts: <b>/</b> search &#183; <b>Esc</b> close &#183; <b>&#8592;/&#8594;</b> switch game &#183; <b>F</b> fullscreen.<br>
+          <b>Julmust</b> &mdash; <span id="sCount"></span> games, movies, music, AI and an unblocked browser in one place.<br>
+          Shortcuts: <kbd>/</kbd> search &middot; <kbd>Esc</kbd> close &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> switch game &middot; <kbd>F</kbd> fullscreen.<br>
           Proxy powered by <a href="https://github.com/MercuryWorkshop/scramjet" target="_blank" rel="noopener">Scramjet</a> (Mercury Workshop).
         </p>
       </section>
@@ -1182,1753 +348,14 @@ html.minimal ::-webkit-scrollbar-thumb{border-radius:4px}
 </div>
 
 <footer>
-  <div>&#129380; Julmust Arcade <b>V67</b> &#8212; <span id="footCount"></span> games on ice &#183; stay fizzy</div>
-  <div>Proxy powered by <a href="https://github.com/MercuryWorkshop/scramjet" target="_blank" rel="noopener">Scramjet</a> (Mercury Workshop) &#183; covers &#38; games &#169; their respective owners</div>
+  <div><b>Julmust</b> &middot; <span id="footCount"></span> games &middot; movies &middot; music &middot; AI</div>
+  <div>Proxy powered by <a href="https://github.com/MercuryWorkshop/scramjet" target="_blank" rel="noopener">Scramjet</a> (Mercury Workshop) &middot; covers &amp; games &copy; their respective owners</div>
 </footer>
 
-<button id="toTop" title="Back to top" aria-label="Back to top">&#8593;</button>
+<button type="button" id="toTop" title="Back to top" aria-label="Back to top"><svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
 <div id="toast"></div>
 
-<script>
-"use strict";
-
-/* ============================== DATA ============================== */
-const GAMES = [
-  {f:"0-fix2.html",n:0,s:"fix2",t:"Bowmasters",c:"covers/0.jpg"},
-  {f:"1-fix2.html",n:1,s:"fix2",t:"OvO",c:"covers/1.jpg"},
-  {f:"2-fix3.html",n:2,s:"fix3",t:"",c:"covers/2.jpg"},
-  {f:"3-fix3.html",n:3,s:"fix3",t:"Ovo 3 Dimension",c:"covers/3.jpg"},
-  {f:"4-fix3.html",n:4,s:"fix3",t:"Gladihopper",c:"covers/4.jpg"},
-  {f:"5-fix2.html",n:5,s:"fix2",t:"Ice Dodo",c:"covers/5.jpg"},
-  {f:"6-fix3.html",n:6,s:"fix3",t:"",c:"covers/6.jpg"},
-  {f:"7-fix2.html",n:7,s:"fix2",t:"Jride",c:"covers/7.jpg"},
-  {f:"7-fix3.html",n:7,s:"fix3",t:"Jride 2",c:"covers/7.jpg"},
-  {f:"8-fix2.html",n:8,s:"fix2",t:"Friday Night Funkin'",c:"covers/8.jpg"},
-  {f:"9-fix2.html",n:9,s:"fix2",t:"Sprunki",c:"covers/9.jpg"},
-  {f:"10-fix2.html",n:10,s:"fix2",t:"Temple Run 2",c:"covers/10.jpg"},
-  {f:"11-fix2.html",n:11,s:"fix2",t:"Stickman Hook",c:"covers/11.jpg"},
-  {f:"13-fix2.html",n:13,s:"fix2",t:"Attack Hole",c:"covers/13.jpg"},
-  {f:"14-fix2.html",n:14,s:"fix2",t:"Bridge Race",c:"covers/14.jpg"},
-  {f:"15-fix2.html",n:15,s:"fix2",t:"Color Water Sort 3D",c:"covers/15.jpg"},
-  {f:"16-fix2.html",n:16,s:"fix2",t:"Hide N Seek",c:"covers/16.jpg"},
-  {f:"17-fix2.html",n:17,s:"fix2",t:"Magic Tiles 3",c:"covers/17.jpg"},
-  {f:"18-fix2.html",n:18,s:"fix2",t:"Stacky Dash",c:"covers/18.jpg"},
-  {f:"19-fix2.html",n:19,s:"fix2",t:"Supreme Duelist",c:"covers/19.jpg"},
-  {f:"20-fix4.html",n:20,s:"fix4",t:"Tall Man Run",c:"covers/20.jpg"},
-  {f:"21-fix2.html",n:21,s:"fix2",t:"Turbo Stars",c:"covers/21.jpg"},
-  {f:"22-fix2.html",n:22,s:"fix2",t:"Mob Control Html 5",c:"covers/22.jpg"},
-  {f:"23-fix2.html",n:23,s:"fix2",t:"Pou",c:"covers/23.jpg"},
-  {f:"24-fix2.html",n:24,s:"fix2",t:"Crossy Road",c:"covers/24.jpg"},
-  {f:"25-fix2.html",n:25,s:"fix2",t:"Basket Battle",c:"covers/25.jpg"},
-  {f:"26-fix2.html",n:26,s:"fix2",t:"Amaze",c:"covers/26.jpg"},
-  {f:"27-fix2.html",n:27,s:"fix2",t:"Geometry Dash Lite",c:"covers/27.jpg"},
-  {f:"28-fix2.html",n:28,s:"fix2",t:"Basketball Frvr",c:"covers/28.jpg"},
-  {f:"29-fix2.html",n:29,s:"fix2",t:"Bazooka Boy",c:"covers/29.jpg"},
-  {f:"30-fix2.html",n:30,s:"fix2",t:"Bottle Jump 3D",c:"covers/30.jpg"},
-  {f:"31-fix2.html",n:31,s:"fix2",t:"Color Match",c:"covers/31.jpg"},
-  {f:"32-fix2.html",n:32,s:"fix2",t:"Dig Deep",c:"covers/32.jpg"},
-  {f:"33-fix2.html",n:33,s:"fix2",t:"Lamar",c:"covers/33.jpg"},
-  {f:"34-fix2.html",n:34,s:"fix2",t:"Ghdfhres",c:"covers/34.jpg"},
-  {f:"36-fix3.html",n:36,s:"fix3",t:"Monster Tracks",c:"covers/36.jpg"},
-  {f:"37-fix3.html",n:37,s:"fix3",t:"Fancade",c:"covers/37.jpg"},
-  {f:"38-fix2.html",n:38,s:"fix2",t:"Five Nights at Freddy's",c:"covers/38.jpg"},
-  {f:"39-fix2.html",n:39,s:"fix2",t:"Five Nights at Freddy's 2",c:"covers/39.jpg"},
-  {f:"40-fix2.html",n:40,s:"fix2",t:"Five Nights at Freddy's 3",c:"covers/40.jpg"},
-  {f:"41-fix2.html",n:41,s:"fix2",t:"Five Nights at Freddy's 4",c:"covers/41.jpg"},
-  {f:"42-fix2.html",n:42,s:"fix2",t:"Roadoffury",c:"covers/42.jpg"},
-  {f:"43-fix2.html",n:43,s:"fix2",t:"Driven Wild",c:"covers/43.jpg"},
-  {f:"44-fix2.html",n:44,s:"fix2",t:"Ragdoll Hit",c:"covers/44.jpg"},
-  {f:"45-fix2.html",n:45,s:"fix2",t:"Vex",c:"covers/45.jpg"},
-  {f:"46-fix2.html",n:46,s:"fix2",t:"Vex",c:"covers/46.jpg"},
-  {f:"47-fix2.html",n:47,s:"fix2",t:"Vex",c:"covers/47.jpg"},
-  {f:"48-fix2.html",n:48,s:"fix2",t:"Vex",c:"covers/48.jpg"},
-  {f:"49-fix2.html",n:49,s:"fix2",t:"Vex",c:"covers/49.jpg"},
-  {f:"50-fix2.html",n:50,s:"fix2",t:"Vex",c:"covers/50.jpg"},
-  {f:"51-fix2.html",n:51,s:"fix2",t:"Vex",c:"covers/51.jpg"},
-  {f:"52-fix2.html",n:52,s:"fix2",t:"Vex",c:"covers/52.jpg"},
-  {f:"53-fix2.html",n:53,s:"fix2",t:"Vex",c:"covers/53.jpg"},
-  {f:"54-fix2.html",n:54,s:"fix2",t:"Vex",c:"covers/54.jpg"},
-  {f:"55-fix2.html",n:55,s:"fix2",t:"Vex",c:"covers/55.jpg"},
-  {f:"56-fix2.html",n:56,s:"fix2",t:"Vex",c:"covers/56.jpg"},
-  {f:"58-fix.html",n:58,s:"fix",t:"",c:"covers/58.jpg"},
-  {f:"58-fix2.html",n:58,s:"fix2",t:"",c:"covers/58.jpg"},
-  {f:"59-fix2.html",n:59,s:"fix2",t:"Academicwebsite",c:"covers/59.jpg"},
-  {f:"60-fix.html",n:60,s:"fix",t:"Aaa Fun World",c:"covers/60.jpg"},
-  {f:"61-fix.html",n:61,s:"fix",t:"Aaa Fun World",c:"covers/61.jpg"},
-  {f:"62-fix.html",n:62,s:"fix",t:"Aaa Fun World",c:"covers/62.jpg"},
-  {f:"63-fix.html",n:63,s:"fix",t:"Academicwebsite",c:"covers/63.jpg"},
-  {f:"63-fix2.html",n:63,s:"fix2",t:"Everyday",c:"covers/63.jpg"},
-  {f:"64-fix4.html",n:64,s:"fix4",t:"",c:"covers/64.jpg"},
-  {f:"65-fix2.html",n:65,s:"fix2",t:"Baldis Basics",c:"covers/65.jpg"},
-  {f:"66-fix2.html",n:66,s:"fix2",t:"Ruffle",c:"covers/66.jpg"},
-  {f:"67-fix2.html",n:67,s:"fix2",t:"Godotpack",c:"covers/67.jpg"},
-  {f:"68-fix2.html",n:68,s:"fix2",t:"Ruffle",c:"covers/68.jpg"},
-  {f:"69-fix.html",n:69,s:"fix",t:"",c:"covers/69.jpg"},
-  {f:"70-fix2.html",n:70,s:"fix2",t:"Bitlife",c:"covers/70.jpg"},
-  {f:"71-fix2.html",n:71,s:"fix2",t:"Bloons Tower Defense 1",c:"covers/71.jpg"},
-  {f:"72-fix.html",n:72,s:"fix",t:"Bloons Tower Defense 2",c:"covers/72.jpg"},
-  {f:"73-fix2.html",n:73,s:"fix2",t:"Bloons Tower Defense 3",c:"covers/73.jpg"},
-  {f:"74-fix.html",n:74,s:"fix",t:"Bloons Tower Defense 4",c:"covers/74.jpg"},
-  {f:"75-fix3.html",n:75,s:"fix3",t:"Lamar",c:"covers/75.jpg"},
-  {f:"76-fix3.html",n:76,s:"fix3",t:"Lamar",c:"covers/76.jpg"},
-  {f:"77-fix2.html",n:77,s:"fix2",t:"Ruffle",c:"covers/77.jpg"},
-  {f:"78-fix2.html",n:78,s:"fix2",t:"Burrito Bison",c:"covers/78.jpg"},
-  {f:"79-fix.html",n:79,s:"fix",t:"Lightspark",c:"covers/79.jpg"},
-  {f:"80-fix.html",n:80,s:"fix",t:"Classroomplayv 2",c:"covers/80.jpg"},
-  {f:"81-fix.html",n:81,s:"fix",t:"Clusterarchive",c:"covers/81.jpg"},
-  {f:"82-a.html",n:82,s:"a",t:"Cookie Clicker",c:"covers/82.jpg"},
-  {f:"83-fix2.html",n:83,s:"fix2",t:"Coreball",c:"covers/83.jpg"},
-  {f:"84-fix.html",n:84,s:"fix",t:"Classroomplayv 2",c:"covers/84.jpg"},
-  {f:"85-fix2.html",n:85,s:"fix2",t:"Cuttheropegames",c:"covers/85.jpg"},
-  {f:"86-fix3.html",n:86,s:"fix3",t:"",c:"covers/86.jpg"},
-  {f:"87-fix2.html",n:87,s:"fix2",t:"Demo",c:"covers/87.jpg"},
-  {f:"88-fix.html",n:88,s:"fix",t:"Algebrahelper",c:"covers/88.jpg"},
-  {f:"89-fix.html",n:89,s:"fix",t:"Html 5 Games",c:"covers/89.jpg"},
-  {f:"90-fix3.html",n:90,s:"fix3",t:"Granny",c:"covers/90.jpg"},
-  {f:"91-fix2.html",n:91,s:"fix2",t:"Gunspin",c:"covers/91.jpg"},
-  {f:"92-fix.html",n:92,s:"fix",t:"Highway Racer 2",c:"covers/92.jpg"},
-  {f:"93-fix2.html",n:93,s:"fix2",t:"Jtrigger",c:"covers/93.jpg"},
-  {f:"94-fix2.html",n:94,s:"fix2",t:"",c:"covers/94.jpg"},
-  {f:"95-fix.html",n:95,s:"fix",t:"Collegegrounds",c:"covers/95.jpg"},
-  {f:"96-fix.html",n:96,s:"fix",t:"Moto",c:"covers/96.jpg"},
-  {f:"97-fix2.html",n:97,s:"fix2",t:"Moto 2",c:"covers/97.jpg"},
-  {f:"98-fix2.html",n:98,s:"fix2",t:"Ruffle",c:"covers/98.jpg"},
-  {f:"99-fix.html",n:99,s:"fix",t:"",c:"covers/99.jpg"},
-  {f:"100-fix2.html",n:100,s:"fix2",t:"Hardes 1",c:"covers/100.jpg"},
-  {f:"101-fix.html",n:101,s:"fix",t:"",c:"covers/101.jpg"},
-  {f:"102-fix.html",n:102,s:"fix",t:"",c:"covers/102.jpg"},
-  {f:"103-fix.html",n:103,s:"fix",t:"The World",c:"covers/103.jpg"},
-  {f:"103-fix2.html",n:103,s:"fix2",t:"X 7 X",c:"covers/103.jpg"},
-  {f:"104-fix2.html",n:104,s:"fix2",t:"The World",c:"covers/104.jpg"},
-  {f:"105-fix.html",n:105,s:"fix",t:"Framework",c:"covers/105.jpg"},
-  {f:"106-fix.html",n:106,s:"fix",t:"Hell",c:"covers/106.jpg"},
-  {f:"107-fix2.html",n:107,s:"fix2",t:"This Is The Only Level 2",c:"covers/107.jpg"},
-  {f:"108-fix2.html",n:108,s:"fix2",t:"",c:"covers/108.jpg"},
-  {f:"109-fix.html",n:109,s:"fix",t:"Tombofthemask",c:"covers/109.jpg"},
-  {f:"110-fix2.html",n:110,s:"fix2",t:"Toss the Turtle",c:"covers/110.jpg"},
-  {f:"111-fix2.html",n:111,s:"fix2",t:"Webgl Helpers",c:"covers/111.jpg"},
-  {f:"112-fix3.html",n:112,s:"fix3",t:"Lamar",c:"covers/112.jpg"},
-  {f:"113-fix.html",n:113,s:"fix",t:"",c:"covers/113.jpg"},
-  {f:"114-fix.html",n:114,s:"fix",t:"",c:"covers/114.jpg"},
-  {f:"114-fix2.html",n:114,s:"fix2",t:"2048 Ai",c:"covers/114.jpg"},
-  {f:"115-fix.html",n:115,s:"fix",t:"React Ruffle",c:"covers/115.jpg"},
-  {f:"116-fix.html",n:116,s:"fix",t:"",c:"covers/116.jpg"},
-  {f:"117-fix2.html",n:117,s:"fix2",t:"Space Waves",c:"covers/117.jpg"},
-  {f:"118-fix2.html",n:118,s:"fix2",t:"Solar Smash",c:"covers/118.jpg"},
-  {f:"119-fix2.html",n:119,s:"fix2",t:"Snowrider 3D",c:"covers/119.jpg"},
-  {f:"120-fix2.html",n:120,s:"fix2",t:"Fortzone Battle Royale",c:"covers/120.jpg"},
-  {f:"121-fix.html",n:121,s:"fix",t:"",c:"covers/121.jpg"},
-  {f:"122-fix.html",n:122,s:"fix",t:"",c:"covers/122.jpg"},
-  {f:"122-fix2.html",n:122,s:"fix2",t:"Sphere Compile",c:"covers/122.jpg"},
-  {f:"123-fix2.html",n:123,s:"fix2",t:"Polytrack",c:"covers/123.jpg"},
-  {f:"124-fix.html",n:124,s:"fix",t:"",c:"covers/124.jpg"},
-  {f:"125-fix2.html",n:125,s:"fix2",t:"Ngng",c:"covers/125.jpg"},
-  {f:"126-fix.html",n:126,s:"fix",t:"",c:null},
-  {f:"127-fix2.html",n:127,s:"fix2",t:"Fashion Battle",c:"covers/127.jpg"},
-  {f:"128-fix2.html",n:128,s:"fix2",t:"Slice It All",c:"covers/128.jpg"},
-  {f:"129-fix.html",n:129,s:"fix",t:"",c:"covers/129.jpg"},
-  {f:"130-fix2.html",n:130,s:"fix2",t:"osu!",c:"covers/130.jpg"},
-  {f:"146-fix2.html",n:146,s:"fix2",t:"8 Ball Classic",c:"covers/146.jpg"},
-  {f:"147-fix2.html",n:147,s:"fix2",t:"Angry Birds Showdown",c:"covers/147.jpg"},
-  {f:"148-fix2.html",n:148,s:"fix2",t:"Archery World Tour",c:"covers/148.jpg"},
-  {f:"149-fix2.html",n:149,s:"fix2",t:"Ball Blast",c:"covers/149.jpg"},
-  {f:"150-fix2.html",n:150,s:"fix2",t:"Cannon Balls 3D",c:"covers/150.jpg"},
-  {f:"151-fix2.html",n:151,s:"fix2",t:"Chess Classic",c:"covers/151.jpg"},
-  {f:"152-fix2.html",n:152,s:"fix2",t:"Draw The Line",c:"covers/152.jpg"},
-  {f:"153-fix2.html",n:153,s:"fix2",t:"Flappy Dunk",c:"covers/153.jpg"},
-  {f:"154-fix2.html",n:154,s:"fix2",t:"Fork N Sausage",c:"covers/154.jpg"},
-  {f:"155-fix2.html",n:155,s:"fix2",t:"Guess Their Answer",c:"covers/155.jpg"},
-  {f:"156-fix2.html",n:156,s:"fix2",t:"Harvest.io",c:"covers/156.jpg"},
-  {f:"157-fix2.html",n:157,s:"fix2",t:"Hill Climb Racing Lite",c:"covers/157.jpg"},
-  {f:"158-fix2.html",n:158,s:"fix2",t:"Pac Man Superfast",c:"covers/158.jpg"},
-  {f:"159-fix2.html",n:159,s:"fix2",t:"Parking Rush",c:"covers/159.jpg"},
-  {f:"160-fix2.html",n:160,s:"fix2",t:"Race Master 3D",c:"covers/160.jpg"},
-  {f:"161-fix2.html",n:161,s:"fix2",t:"State.io",c:"covers/161.jpg"},
-  {f:"162-fix2.html",n:162,s:"fix2",t:"Tower Crash 3D",c:"covers/162.jpg"},
-  {f:"163-fix2.html",n:163,s:"fix2",t:"Trivia Crack",c:"covers/163.jpg"},
-  {f:"164-fix3.html",n:164,s:"fix3",t:"",c:"covers/164.jpg"},
-  {f:"165-fix2.html",n:165,s:"fix2",t:"Notlook",c:"covers/165.jpg"},
-  {f:"166-fix2.html",n:166,s:"fix2",t:"Bad Parenting",c:"covers/166.jpg"},
-  {f:"167-fix.html",n:167,s:"fix",t:"Gitapp",c:"covers/167.jpg"},
-  {f:"168-fix2.html",n:168,s:"fix2",t:"Html Games V 2",c:"covers/168.jpg"},
-  {f:"169-fix.html",n:169,s:"fix",t:"React Ruffle",c:"covers/169.jpg"},
-  {f:"170-fix2.html",n:170,s:"fix2",t:"Ruffle",c:"covers/170.jpg"},
-  {f:"171-fix.html",n:171,s:"fix",t:"",c:"covers/171.jpg"},
-  {f:"172-fix2.html",n:172,s:"fix2",t:"Melon Playground",c:"covers/172.jpg"},
-  {f:"173-fix2.html",n:173,s:"fix2",t:"Drift Hunters",c:"covers/173.jpg"},
-  {f:"174-fix.html",n:174,s:"fix",t:"Worldbox",c:"covers/174.jpg"},
-  {f:"175-fix.html",n:175,s:"fix",t:"Run",c:"covers/175.jpg"},
-  {f:"176-fix.html",n:176,s:"fix",t:"Run 2",c:"covers/176.jpg"},
-  {f:"177-fix.html",n:177,s:"fix",t:"Lekug.Github.Io",c:"covers/177.jpg"},
-  {f:"178-fix.html",n:178,s:"fix",t:"",c:"covers/178.jpg"},
-  {f:"179-a3.html",n:179,s:"a3",t:"Soundboard",c:"covers/179.jpg"},
-  {f:"180-fix.html",n:180,s:"fix",t:"3 Kh 0 Assets",c:"covers/180.jpg"},
-  {f:"180-fix2.html",n:180,s:"fix2",t:"N Gon",c:"covers/180.jpg"},
-  {f:"181-f.html",n:181,s:"f",t:"Eaglercraft 1.8.8",c:"covers/181.jpg"},
-  {f:"181-fix.html",n:181,s:"fix",t:"",c:"covers/181.jpg"},
-  {f:"182-f.html",n:182,s:"f",t:"Eaglercraft 1.12.2",c:"covers/182.jpg"},
-  {f:"183.html",n:183,s:"",t:"",c:"covers/183.jpg"},
-  {f:"185-fix2.html",n:185,s:"fix2",t:"FNaF: Sister Location",c:"covers/185.jpg"},
-  {f:"186-fix.html",n:186,s:"fix",t:"",c:"covers/186.jpg"},
-  {f:"187-fix.html",n:187,s:"fix",t:"",c:"covers/187.jpg"},
-  {f:"188-fix2.html",n:188,s:"fix2",t:"Scrap Metal",c:"covers/188.jpg"},
-  {f:"190-fix2.html",n:190,s:"fix2",t:"FNaF World",c:"covers/190.jpg"},
-  {f:"191-fix2.html",n:191,s:"fix2",t:"FNaF: Pizzeria Simulator",c:"covers/191.jpg"},
-  {f:"192-fix2.html",n:192,s:"fix2",t:"Ultimate Custom Night",c:"covers/192.jpg"},
-  {f:"193-fix2.html",n:193,s:"fix2",t:"Donottakethiscathome",c:"covers/193.jpg"},
-  {f:"194-fix2.html",n:194,s:"fix2",t:"People Playground",c:null},
-  {f:"195-fix2.html",n:195,s:"fix2",t:"",c:"covers/195.jpg"},
-  {f:"196-fix2.html",n:196,s:"fix2",t:"Ultrakill",c:"covers/196.jpg"},
-  {f:"197-fix.html",n:197,s:"fix",t:"Elasticman",c:"covers/197.jpg"},
-  {f:"198-fix2.html",n:198,s:"fix2",t:"WEB 1.2.1.Data",c:"covers/198.jpg"},
-  {f:"199-fix.html",n:199,s:"fix",t:"",c:"covers/199.jpg"},
-  {f:"200-fix.html",n:200,s:"fix",t:"",c:"covers/200.jpg"},
-  {f:"201-fix2.html",n:201,s:"fix2",t:"Google",c:"covers/201.jpg"},
-  {f:"202-fix2.html",n:202,s:"fix2",t:"Carrom Clash",c:"covers/202.jpg"},
-  {f:"203-fix2.html",n:203,s:"fix2",t:"Dosbox",c:"covers/203.jpg"},
-  {f:"204-fix2.html",n:204,s:"fix2",t:"Five Nights at Wario's",c:"covers/204.jpg"},
-  {f:"205-fix2.html",n:205,s:"fix2",t:"Buckshot Roulette",c:"covers/205.jpg"},
-  {f:"206-fix2.html",n:206,s:"fix2",t:"Lamar",c:"covers/206.jpg"},
-  {f:"207-fix3.html",n:207,s:"fix3",t:"Lamar",c:"covers/207.jpg"},
-  {f:"208-fix2.html",n:208,s:"fix2",t:"Lamar",c:"covers/208.jpg"},
-  {f:"209-fix3.html",n:209,s:"fix3",t:"Lamar",c:"covers/209.jpg"},
-  {f:"210-fix2.html",n:210,s:"fix2",t:"Lamar",c:"covers/210.jpg"},
-  {f:"211-fix3.html",n:211,s:"fix3",t:"Lamar",c:"covers/211.jpg"},
-  {f:"212-fix2.html",n:212,s:"fix2",t:"Cuttheropegames",c:"covers/212.jpg"},
-  {f:"213-fix2.html",n:213,s:"fix2",t:"Cuttheropegames",c:"covers/213.jpg"},
-  {f:"214-fix2.html",n:214,s:"fix2",t:"Cuttheropegames",c:"covers/214.jpg"},
-  {f:"215-fix2.html",n:215,s:"fix2",t:"Bendy",c:"covers/215.jpg"},
-  {f:"216-fix2.html",n:216,s:"fix2",t:"Thats Not My Neighbor",c:"covers/216.jpg"},
-  {f:"217-fix2.html",n:217,s:"fix2",t:"Hotline Miami",c:"covers/217.jpg"},
-  {f:"218-fix.html",n:218,s:"fix",t:"Shsg Pfile",c:"covers/218.jpg"},
-  {f:"219-fix2.html",n:219,s:"fix2",t:"Papasburgeria",c:"covers/219.jpg"},
-  {f:"220-fix2.html",n:220,s:"fix2",t:"Papa S Cheeseria",c:"covers/220.jpg"},
-  {f:"221-fix2.html",n:221,s:"fix2",t:"Papascupcakeria",c:"covers/221.jpg"},
-  {f:"222-fix.html",n:222,s:"fix",t:"Webprx",c:"covers/222.jpg"},
-  {f:"223-fix.html",n:223,s:"fix",t:"Freezeria",c:"covers/223.jpg"},
-  {f:"224-fix2.html",n:224,s:"fix2",t:"Papas Hot Doggeria",c:"covers/224.jpg"},
-  {f:"225-fix2.html",n:225,s:"fix2",t:"Papaspancakeria",c:"covers/225.jpg"},
-  {f:"226-fix2.html",n:226,s:"fix2",t:"Papas Pastaria 123",c:"covers/226.jpg"},
-  {f:"227-fix.html",n:227,s:"fix",t:"Pizzeria",c:"covers/227.jpg"},
-  {f:"228-fix2.html",n:228,s:"fix2",t:"Papas Scooperia",c:"covers/228.jpg"},
-  {f:"229-fix2.html",n:229,s:"fix2",t:"Papassushiria",c:"covers/229.jpg"},
-  {f:"230-fix2.html",n:230,s:"fix2",t:"Papastacomiahtml",c:"covers/230.jpg"},
-  {f:"231-fix2.html",n:231,s:"fix2",t:"Papaswingeria",c:"covers/231.jpg"},
-  {f:"232-fix2.html",n:232,s:"fix2",t:"Plants.Vs.Zombies",c:"covers/232.jpg"},
-  {f:"233-fix.html",n:233,s:"fix",t:"3 Kh 0 Lite",c:"covers/233.jpg"},
-  {f:"234-fix2.html",n:234,s:"fix2",t:"Duck Life",c:"covers/234.jpg"},
-  {f:"235-fix2.html",n:235,s:"fix2",t:"Duck Life 2",c:"covers/235.jpg"},
-  {f:"236-fix2.html",n:236,s:"fix2",t:"Duck Life 3",c:"covers/236.jpg"},
-  {f:"237-fix2.html",n:237,s:"fix2",t:"Ducklife 4",c:"covers/237.jpg"},
-  {f:"238-fix.html",n:238,s:"fix",t:"Web Flash",c:"covers/238.jpg"},
-  {f:"239-fix2.html",n:239,s:"fix2",t:"Red Ball 1",c:"covers/239.jpg"},
-  {f:"240-fix2.html",n:240,s:"fix2",t:"Red Ball 2",c:"covers/240.jpg"},
-  {f:"241-fix.html",n:241,s:"fix",t:"Red Ball",c:"covers/241.jpg"},
-  {f:"242-fix2.html",n:242,s:"fix2",t:"Y",c:"covers/242.jpg"},
-  {f:"243-fix.html",n:243,s:"fix",t:"Red Ball 4 Vol.2 Definitive Edition",c:"covers/243.jpg"},
-  {f:"244-fix.html",n:244,s:"fix",t:"Red Ball 4 Vol.3 Definitive Edition",c:"covers/244.jpg"},
-  {f:"245-fix.html",n:245,s:"fix",t:"Clickjogos",c:"covers/245.jpg"},
-  {f:"246-fix.html",n:246,s:"fix",t:"Clickjogos",c:"covers/246.jpg"},
-  {f:"247-fix.html",n:247,s:"fix",t:"Clickjogos",c:"covers/247.jpg"},
-  {f:"248-fix.html",n:248,s:"fix",t:"Clickjogos",c:"covers/248.jpg"},
-  {f:"249-fix.html",n:249,s:"fix",t:"Omygayyatta",c:"covers/249.jpg"},
-  {f:"250-fix.html",n:250,s:"fix",t:"Omygayyatta",c:"covers/250.jpg"},
-  {f:"251-fix.html",n:251,s:"fix",t:"Bchs",c:"covers/251.jpg"},
-  {f:"252-fix.html",n:252,s:"fix",t:"Bchs",c:"covers/252.jpg"},
-  {f:"253-update2.html",n:253,s:"update2",t:"",c:"covers/253.jpg"},
-  {f:"254-fix.html",n:254,s:"fix",t:"",c:"covers/254.jpg"},
-  {f:"255-fix2.html",n:255,s:"fix2",t:"",c:"covers/255.jpg"},
-  {f:"256-fix.html",n:256,s:"fix",t:"",c:"covers/256.jpg"},
-  {f:"257-fix2.html",n:257,s:"fix2",t:"Google Doodles",c:"covers/257.jpg"},
-  {f:"258-fix.html",n:258,s:"fix",t:"",c:"covers/258.jpg"},
-  {f:"259-fix2.html",n:259,s:"fix2",t:"Class Of 09",c:"covers/259.jpg"},
-  {f:"260-fix.html",n:260,s:"fix",t:"",c:"covers/260.jpg"},
-  {f:"261-fix.html",n:261,s:"fix",t:"Fruit Ninja",c:"covers/261.jpg"},
-  {f:"262-fix.html",n:262,s:"fix",t:"Half Life",c:"covers/262.jpg"},
-  {f:"263-fix3.html",n:263,s:"fix3",t:"Quake 3",c:"covers/263.jpg"},
-  {f:"264-fix.html",n:264,s:"fix",t:"Escape Road",c:"covers/264.jpg"},
-  {f:"265-fix3.html",n:265,s:"fix3",t:"Escaperoad 2",c:"covers/265.jpg"},
-  {f:"265-fix4.html",n:265,s:"fix4",t:"Aws",c:"covers/265.jpg"},
-  {f:"266-fix2.html",n:266,s:"fix2",t:"Speed Stars",c:"covers/266.jpg"},
-  {f:"267-fix2.html",n:267,s:"fix2",t:"Pizza Tower",c:"covers/267.jpg"},
-  {f:"268-fix2.html",n:268,s:"fix2",t:"Lamar",c:"covers/268.jpg"},
-  {f:"269-fix2.html",n:269,s:"fix2",t:"Lamar",c:"covers/269.jpg"},
-  {f:"270-fix2.html",n:270,s:"fix2",t:"Lamar",c:"covers/270.jpg"},
-  {f:"271-fix2.html",n:271,s:"fix2",t:"Lamar",c:"covers/271.jpg"},
-  {f:"272-ff.html",n:272,s:"ff",t:"",c:"covers/272.jpg"},
-  {f:"273-fix.html",n:273,s:"fix",t:"Blockpost",c:"covers/273.jpg"},
-  {f:"274-fix2.html",n:274,s:"fix2",t:"Lamar",c:"covers/274.jpg"},
-  {f:"275-fix.html",n:275,s:"fix",t:"Circlo 02",c:"covers/275.jpg"},
-  {f:"276-fix2.html",n:276,s:"fix2",t:"Lamar",c:"covers/276.jpg"},
-  {f:"277-fix2.html",n:277,s:"fix2",t:"Lamar",c:"covers/277.jpg"},
-  {f:"278-fix.html",n:278,s:"fix",t:"Madalin Stunt Cars 2",c:"covers/278.jpg"},
-  {f:"279-fix.html",n:279,s:"fix",t:"Madalin Stunt Cars 3",c:"covers/279.jpg"},
-  {f:"280-fix.html",n:280,s:"fix",t:"Papery Planes",c:"covers/280.jpg"},
-  {f:"281-fix.html",n:281,s:"fix",t:"Pixel Gun Survival",c:"covers/281.jpg"},
-  {f:"282-fix2.html",n:282,s:"fix2",t:"Lamar",c:"covers/282.jpg"},
-  {f:"283-fix2.html",n:283,s:"fix2",t:"Lamar",c:"covers/283.jpg"},
-  {f:"284-fix.html",n:284,s:"fix",t:"Home",c:"covers/284.jpg"},
-  {f:"284-fix2.html",n:284,s:"fix2",t:"Swwq",c:"covers/284.jpg"},
-  {f:"285-fix2.html",n:285,s:"fix2",t:"Lamar",c:"covers/285.jpg"},
-  {f:"286-fix.html",n:286,s:"fix",t:"",c:"covers/286.jpg"},
-  {f:"287-fix2.html",n:287,s:"fix2",t:"Riddleschool 1",c:"covers/287.jpg"},
-  {f:"288-fix2.html",n:288,s:"fix2",t:"Riddleschool 2",c:"covers/288.jpg"},
-  {f:"289-fix2.html",n:289,s:"fix2",t:"Riddleschool 3",c:"covers/289.jpg"},
-  {f:"290-fix2.html",n:290,s:"fix2",t:"Riddleschool 4",c:"covers/290.jpg"},
-  {f:"291-fix2.html",n:291,s:"fix2",t:"Riddleschool 5",c:"covers/291.jpg"},
-  {f:"292-fix2.html",n:292,s:"fix2",t:"Riddletransfer",c:"covers/292.jpg"},
-  {f:"293-fix2.html",n:293,s:"fix2",t:"Riddletransfer 2",c:"covers/293.jpg"},
-  {f:"294-fix.html",n:294,s:"fix",t:"",c:"covers/294.jpg"},
-  {f:"295-fix.html",n:295,s:"fix",t:"",c:"covers/295.jpg"},
-  {f:"296-fix.html",n:296,s:"fix",t:"Play",c:"covers/296.jpg"},
-  {f:"297-f.html",n:297,s:"f",t:"Eaglercraft 1.5.2",c:"covers/297.jpg"},
-  {f:"298-fix.html",n:298,s:"fix",t:"Eaglercraft Alpha 1.2.6",c:"covers/298.jpg"},
-  {f:"299-fix.html",n:299,s:"fix",t:"Eaglercraft Beta 1.3",c:"covers/299.jpg"},
-  {f:"300.html",n:300,s:"",t:"",c:"covers/300.jpg"},
-  {f:"300-fix.html",n:300,s:"fix",t:"",c:"covers/300.jpg"},
-  {f:"301-fix.html",n:301,s:"fix",t:"Eaglercraft Indev",c:"covers/301.jpg"},
-  {f:"302-fix.html",n:302,s:"fix",t:"",c:"covers/302.jpg"},
-  {f:"303-fix2.html",n:303,s:"fix2",t:"",c:"covers/303.jpg"},
-  {f:"304-fix.html",n:304,s:"fix",t:"Alien Hominid",c:"covers/304.jpg"},
-  {f:"305-fix2.html",n:305,s:"fix2",t:"Tanuki Sunset",c:"covers/305.jpg"},
-  {f:"306-fix.html",n:306,s:"fix",t:"",c:"covers/306.jpg"},
-  {f:"307-fix.html",n:307,s:"fix",t:"",c:"covers/307.jpg"},
-  {f:"308-fix.html",n:308,s:"fix",t:"",c:"covers/308.jpg"},
-  {f:"309-fix.html",n:309,s:"fix",t:"",c:"covers/309.jpg"},
-  {f:"310-fix.html",n:310,s:"fix",t:"",c:"covers/310.jpg"},
-  {f:"311-fix.html",n:311,s:"fix",t:"",c:"covers/311.jpg"},
-  {f:"312-fix.html",n:312,s:"fix",t:"Blackjack",c:"covers/312.jpg"},
-  {f:"313-fix.html",n:313,s:"fix",t:"Minesw",c:"covers/313.jpg"},
-  {f:"314-fix2.html",n:314,s:"fix2",t:"Supermario 63",c:"covers/314.jpg"},
-  {f:"315-fix.html",n:315,s:"fix",t:"",c:"covers/315.jpg"},
-  {f:"316-fix.html",n:316,s:"fix",t:"Angrybirdschrome Source Html 5",c:"covers/316.jpg"},
-  {f:"317-fix.html",n:317,s:"fix",t:"",c:"covers/317.jpg"},
-  {f:"318-fix.html",n:318,s:"fix",t:"Merge",c:"covers/318.jpg"},
-  {f:"319-fix2.html",n:319,s:"fix2",t:"Build A Queen",c:"covers/319.jpg"},
-  {f:"320-fix2.html",n:320,s:"fix2",t:"3D Bowling",c:"covers/320.jpg"},
-  {f:"321-fix2.html",n:321,s:"fix2",t:"Room Sort",c:"covers/321.jpg"},
-  {f:"322-fix2.html",n:322,s:"fix2",t:"Sushi Roll",c:"covers/322.jpg"},
-  {f:"323-fix2.html",n:323,s:"fix2",t:"Find The Alien",c:"covers/323.jpg"},
-  {f:"324-fix2.html",n:324,s:"fix2",t:"Maze Speedrun",c:"covers/324.jpg"},
-  {f:"325-fix2.html",n:325,s:"fix2",t:"Kitchen Bazar",c:"covers/325.jpg"},
-  {f:"326-fix2.html",n:326,s:"fix2",t:"Pokey Ball",c:"covers/326.jpg"},
-  {f:"327-fix.html",n:327,s:"fix",t:"Slime.io",c:"covers/327.jpg"},
-  {f:"328-fix2.html",n:328,s:"fix2",t:"Om Nom Run",c:"covers/328.jpg"},
-  {f:"329-fix2.html",n:329,s:"fix2",t:"Tiletopia",c:"covers/329.jpg"},
-  {f:"330-fix2.html",n:330,s:"fix2",t:"",c:"covers/330.jpg"},
-  {f:"331-fix.html",n:331,s:"fix",t:"Crazy Cars",c:"covers/331.jpg"},
-  {f:"332-fix.html",n:332,s:"fix",t:"Going Balls",c:"covers/332.jpg"},
-  {f:"333-fix2.html",n:333,s:"fix2",t:"Fancypantsadventure",c:"covers/333.jpg"},
-  {f:"334-fix.html",n:334,s:"fix",t:"Fancy Pants Adventure 2",c:"covers/334.jpg"},
-  {f:"335-fix.html",n:335,s:"fix",t:"FPA World 3",c:"covers/335.jpg"},
-  {f:"336-fix2.html",n:336,s:"fix2",t:"FPA World 4 Part 1",c:"covers/336.jpg"},
-  {f:"337-fix.html",n:337,s:"fix",t:"Fpaworld 4 P 2",c:"covers/337.jpg"},
-  {f:"338-fix.html",n:338,s:"fix",t:"Everyday",c:"covers/338.jpg"},
-  {f:"338-fix2.html",n:338,s:"fix2",t:"D",c:"covers/338.jpg"},
-  {f:"339-fix2.html",n:339,s:"fix2",t:"Everyday",c:"covers/339.jpg"},
-  {f:"340-fix.html",n:340,s:"fix",t:"Whitespider",c:"covers/340.jpg"},
-  {f:"341-fix2.html",n:341,s:"fix2",t:"Learn To Fly 2",c:"covers/341.jpg"},
-  {f:"342-fix.html",n:342,s:"fix",t:"Embeds",c:"covers/342.jpg"},
-  {f:"343-fix.html",n:343,s:"fix",t:"Learn To Fly Idle",c:"covers/343.jpg"},
-  {f:"344-fix2.html",n:344,s:"fix2",t:"Raftwars",c:"covers/344.jpg"},
-  {f:"345-fix.html",n:345,s:"fix",t:"Raft Wars 2 14853",c:"covers/345.jpg"},
-  {f:"346-fix.html",n:346,s:"fix",t:"",c:"covers/346.jpg"},
-  {f:"347-fix.html",n:347,s:"fix",t:"Merge",c:"covers/347.jpg"},
-  {f:"348-fix.html",n:348,s:"fix",t:"",c:"covers/348.jpg"},
-  {f:"348-fix2.html",n:348,s:"fix2",t:"They Are Coming",c:"covers/348.jpg"},
-  {f:"349-fix.html",n:349,s:"fix",t:"Spi",c:"covers/349.jpg"},
-  {f:"350-fix.html",n:350,s:"fix",t:"Tboiwotl V 1.666",c:"covers/350.jpg"},
-  {f:"351-fix.html",n:351,s:"fix",t:"",c:"covers/351.jpg"},
-  {f:"352-fix.html",n:352,s:"fix",t:"",c:"covers/352.jpg"},
-  {f:"353-fix.html",n:353,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/353.jpg"},
-  {f:"353-fix2.html",n:353,s:"fix2",t:"Blumgi Rocket",c:"covers/353.jpg"},
-  {f:"354-fix2.html",n:354,s:"fix2",t:"Adventure Capitalist",c:"covers/354.jpg"},
-  {f:"355-fix.html",n:355,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/355.jpg"},
-  {f:"356-fix.html",n:356,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/356.jpg"},
-  {f:"357-fix.html",n:357,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/357.jpg"},
-  {f:"358-fix.html",n:358,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/358.jpg"},
-  {f:"359-fix.html",n:359,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/359.jpg"},
-  {f:"360-fix.html",n:360,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/360.jpg"},
-  {f:"361-fix.html",n:361,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/361.jpg"},
-  {f:"362-fix.html",n:362,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/362.jpg"},
-  {f:"363-fix.html",n:363,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/363.jpg"},
-  {f:"364-fix.html",n:364,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/364.jpg"},
-  {f:"365-fix.html",n:365,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/365.jpg"},
-  {f:"366-fix.html",n:366,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/366.jpg"},
-  {f:"367-fix2.html",n:367,s:"fix2",t:"Bulbasaurchat.Github.Io",c:"covers/367.jpg"},
-  {f:"368-fix.html",n:368,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/368.jpg"},
-  {f:"369-fix.html",n:369,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/369.jpg"},
-  {f:"370-fix2.html",n:370,s:"fix2",t:"Bulbasaurchat.Github.Io",c:"covers/370.jpg"},
-  {f:"371-fix2.html",n:371,s:"fix2",t:"Stickman Fighto",c:"covers/371.jpg"},
-  {f:"372-fix.html",n:372,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/372.jpg"},
-  {f:"373-fix.html",n:373,s:"fix",t:"Bulbasaurchat.Github.Io",c:"covers/373.jpg"},
-  {f:"374-fix2.html",n:374,s:"fix2",t:"Lamar",c:"covers/374.jpg"},
-  {f:"375-fix2.html",n:375,s:"fix2",t:"2048 Merge Run",c:"covers/375.jpg"},
-  {f:"376-fix.html",n:376,s:"fix",t:"Build A Big Army",c:"covers/376.jpg"},
-  {f:"377-fix.html",n:377,s:"fix",t:"Build A Plane",c:"covers/377.jpg"},
-  {f:"378-fix.html",n:378,s:"fix",t:"Camouflage And Sniper",c:"covers/378.jpg"},
-  {f:"379-fix.html",n:379,s:"fix",t:"Car Survival 3D",c:"covers/379.jpg"},
-  {f:"380-fix.html",n:380,s:"fix",t:"City Defense",c:"covers/380.jpg"},
-  {f:"381-fix2.html",n:381,s:"fix2",t:"Clothing Shop 3D",c:"covers/381.jpg"},
-  {f:"382-fix.html",n:382,s:"fix",t:"Cool Cars Run 3D",c:"covers/382.jpg"},
-  {f:"383-fix.html",n:383,s:"fix",t:"Crush Cars 3D",c:"covers/383.jpg"},
-  {f:"384-fix.html",n:384,s:"fix",t:"Destiny Run 3D",c:"covers/384.jpg"},
-  {f:"385-fix2.html",n:385,s:"fix2",t:"Destroy The Car 3D",c:"covers/385.jpg"},
-  {f:"386-fix.html",n:386,s:"fix",t:"Diamond Seeker",c:"covers/386.jpg"},
-  {f:"387-fix2.html",n:387,s:"fix2",t:"Draw Joust",c:"covers/387.jpg"},
-  {f:"388-fix2.html",n:388,s:"fix2",t:"Evolving Bombs 3D",c:"covers/388.jpg"},
-  {f:"389-fix2.html",n:389,s:"fix2",t:"Fire And Frost Master",c:"covers/389.jpg"},
-  {f:"390-fix2.html",n:390,s:"fix2",t:"Fitness Empire",c:"covers/390.jpg"},
-  {f:"391-fix.html",n:391,s:"fix",t:"Flick Goal",c:"covers/391.jpg"},
-  {f:"392-fix.html",n:392,s:"fix",t:"Flip Master",c:"covers/392.jpg"},
-  {f:"393-fix.html",n:393,s:"fix",t:"Giant Wanted",c:"covers/393.jpg"},
-  {f:"394-fix.html",n:394,s:"fix",t:"Gun Clone",c:"covers/394.jpg"},
-  {f:"395-fix2.html",n:395,s:"fix2",t:"Gun Runner",c:"covers/395.jpg"},
-  {f:"396-fix2.html",n:396,s:"fix2",t:"Kaji Run",c:"covers/396.jpg"},
-  {f:"397-fix.html",n:397,s:"fix",t:"Make A Superboat",c:"covers/397.jpg"},
-  {f:"398-fix.html",n:398,s:"fix",t:"Makeover Run",c:"covers/398.jpg"},
-  {f:"399-fix.html",n:399,s:"fix",t:"Mega Car Jumps",c:"covers/399.jpg"},
-  {f:"400-fix3.html",n:400,s:"fix3",t:"Money Rush",c:"covers/400.jpg"},
-  {f:"401-fix.html",n:401,s:"fix",t:"Monster Box 3D",c:"covers/401.jpg"},
-  {f:"402-fix2.html",n:402,s:"fix2",t:"Office Fight",c:"covers/402.jpg"},
-  {f:"403-fix.html",n:403,s:"fix",t:"Robot Invasion",c:"covers/403.jpg"},
-  {f:"404-fix.html",n:404,s:"fix",t:"Seat Jam 3D",c:"covers/404.jpg"},
-  {f:"405-fix.html",n:405,s:"fix",t:"Shooting Master",c:"covers/405.jpg"},
-  {f:"406-fix2.html",n:406,s:"fix2",t:"Supermarket 3D",c:"covers/406.jpg"},
-  {f:"407-fix2.html",n:407,s:"fix2",t:"Survive To Victory",c:"covers/407.jpg"},
-  {f:"408-fix2.html",n:408,s:"fix2",t:"Telekinesis",c:"covers/408.jpg"},
-  {f:"409-fix.html",n:409,s:"fix",t:"Telekinesis Attack",c:"covers/409.jpg"},
-  {f:"410-fix.html",n:410,s:"fix",t:"Telekinesis Car",c:"covers/410.jpg"},
-  {f:"411-fix.html",n:411,s:"fix",t:"Telekinesis Drive",c:"covers/411.jpg"},
-  {f:"412-fix.html",n:412,s:"fix",t:"Triple Match 3D",c:"covers/412.jpg"},
-  {f:"413-fix.html",n:413,s:"fix",t:"Tug Of War With Cars",c:"covers/413.jpg"},
-  {f:"414-fix.html",n:414,s:"fix",t:"Twerk Race 3D",c:"covers/414.jpg"},
-  {f:"415-fix.html",n:415,s:"fix",t:"Twisted Rope 3D",c:"covers/415.jpg"},
-  {f:"416-fix2.html",n:416,s:"fix2",t:"Wall Crawler",c:"covers/416.jpg"},
-  {f:"417-fix.html",n:417,s:"fix",t:"War Regions",c:"covers/417.jpg"},
-  {f:"418-fix.html",n:418,s:"fix",t:"Weapon Craft Run",c:"covers/418.jpg"},
-  {f:"419-fix2.html",n:419,s:"fix2",t:"Weapon Upgrade Rush",c:"covers/419.jpg"},
-  {f:"420-fix.html",n:420,s:"fix",t:"Wheel Scale",c:"covers/420.jpg"},
-  {f:"421-fix2.html",n:421,s:"fix2",t:"Run Rich 3D",c:"covers/421.jpg"},
-  {f:"422-fix2.html",n:422,s:"fix2",t:"High Heels",c:"covers/422.jpg"},
-  {f:"423-fix2.html",n:423,s:"fix2",t:"Web Fishing",c:"covers/423.jpg"},
-  {f:"426-fix2.html",n:426,s:"fix2",t:"Andys Apple Farm",c:"covers/426.jpg"},
-  {f:"427-fix2.html",n:427,s:"fix2",t:"OMORI",c:"covers/427.jpg"},
-  {f:"428-fix2.html",n:428,s:"fix2",t:"FNaF 4: Halloween Edition",c:"covers/428.jpg"},
-  {f:"429-ff.html",n:429,s:"ff",t:"Code Editor",c:"covers/429.jpg"},
-  {f:"430-fix2.html",n:430,s:"fix2",t:"10 Minutestilldawn",c:"covers/430.jpg"},
-  {f:"431-fix2.html",n:431,s:"fix2",t:"Ruffle",c:"covers/431.png"},
-  {f:"432-fix.html",n:432,s:"fix",t:"Abandoned",c:"covers/432.jpg"},
-  {f:"433-fix2.html",n:433,s:"fix2",t:"Yume Nikki",c:"covers/433.jpg"},
-  {f:"434-fix.html",n:434,s:"fix",t:"Assets",c:"covers/434.jpg"},
-  {f:"435-fix.html",n:435,s:"fix",t:"Ruffle",c:"covers/435.jpg"},
-  {f:"436-fix.html",n:436,s:"fix",t:"Awesome Tanks",c:"covers/436.jpg"},
-  {f:"437-fix2.html",n:437,s:"fix2",t:"Bouncemasters",c:"covers/437.jpg"},
-  {f:"438-fix.html",n:438,s:"fix",t:"Dingo",c:"covers/438.jpg"},
-  {f:"439-fix.html",n:439,s:"fix",t:"React",c:"covers/439.jpg"},
-  {f:"440-fix.html",n:440,s:"fix",t:"Celeste",c:"covers/440.jpg"},
-  {f:"441-fix.html",n:441,s:"fix",t:"",c:"covers/441.jpg"},
-  {f:"442-fix.html",n:442,s:"fix",t:"Infinimoes",c:"covers/442.jpg"},
-  {f:"443-fix2.html",n:443,s:"fix2",t:"Lamar",c:"covers/443.jpg"},
-  {f:"444-fix.html",n:444,s:"fix",t:"Ages Of Conflict",c:"covers/444.jpg"},
-  {f:"445-fix2.html",n:445,s:"fix2",t:"Kindergarten",c:"covers/445.jpg"},
-  {f:"446-fix2.html",n:446,s:"fix2",t:"Kindergarten",c:"covers/446.jpg"},
-  {f:"447-fix2.html",n:447,s:"fix2",t:"",c:"covers/447.jpg"},
-  {f:"448-fix2.html",n:448,s:"fix2",t:"Aquapark.io",c:"covers/448.jpg"},
-  {f:"449-fix2.html",n:449,s:"fix2",t:"City Smash",c:"covers/449.jpg"},
-  {f:"450-fix2.html",n:450,s:"fix2",t:"Amanda The Adventurer",c:"covers/450.jpg"},
-  {f:"451-fix2.html",n:451,s:"fix2",t:"Slender",c:"covers/451.jpg"},
-  {f:"452-fix.html",n:452,s:"fix",t:"Station 141",c:"covers/452.jpg"},
-  {f:"453-fix2.html",n:453,s:"fix2",t:"Station Saturn",c:"covers/453.jpg"},
-  {f:"454-fix2.html",n:454,s:"fix2",t:"Bloodmoney",c:"covers/454.jpg"},
-  {f:"455-fix2.html",n:455,s:"fix2",t:"Bergentruck",c:"covers/455.jpg"},
-  {f:"456-fix2.html",n:456,s:"fix2",t:"Undertale Yellow",c:"covers/456.jpg"},
-  {f:"457-fix2.html",n:457,s:"fix2",t:"Raft",c:"covers/457.jpg"},
-  {f:"458-fix2.html",n:458,s:"fix2",t:"Deadseat",c:"covers/458.jpg"},
-  {f:"459-fix2.html",n:459,s:"fix2",t:"The Man In The Window",c:"covers/459.jpg"},
-  {f:"460-fix2.html",n:460,s:"fix2",t:"Fears To Fathom",c:"covers/460.jpg"},
-  {f:"461-fix.html",n:461,s:"fix",t:"",c:"covers/461.jpg"},
-  {f:"461-fix2.html",n:461,s:"fix2",t:"Slitherio",c:"covers/461.jpg"},
-  {f:"462-fix2.html",n:462,s:"fix2",t:"Dead Plate",c:"covers/462.jpg"},
-  {f:"463-fix2.html",n:463,s:"fix2",t:"Lacysflashgames",c:"covers/463.jpg"},
-  {f:"464-fix.html",n:464,s:"fix",t:"Choppy Orc",c:"covers/464.jpg"},
-  {f:"465-fix2.html",n:465,s:"fix2",t:"Cuphead",c:"covers/465.jpg"},
-  {f:"466-fix2.html",n:466,s:"fix2",t:"Baldi Remaster",c:"covers/466.jpg"},
-  {f:"467-fix2.html",n:467,s:"fix2",t:"Baldi Plus",c:"covers/467.jpg"},
-  {f:"468-fix2.html",n:468,s:"fix2",t:"Hollow Knight",c:"covers/468.jpg"},
-  {f:"469-fix.html",n:469,s:"fix",t:"Sandstone Gn",c:"covers/469.jpg"},
-  {f:"470-fix.html",n:470,s:"fix",t:"Doodle Jump",c:"covers/470.jpg"},
-  {f:"471-fix.html",n:471,s:"fix",t:"Games 4",c:"covers/471.jpg"},
-  {f:"472-fix.html",n:472,s:"fix",t:"5 Yrgdegfwfew 4",c:"covers/472.jpg"},
-  {f:"472-fix2.html",n:472,s:"fix2",t:"Jsengine",c:"covers/472.jpg"},
-  {f:"473-fix.html",n:473,s:"fix",t:"",c:"covers/473.jpg"},
-  {f:"474-fix.html",n:474,s:"fix",t:"Fnf Mods",c:"covers/474.jpg"},
-  {f:"475-fix.html",n:475,s:"fix",t:"Fnf Mods",c:"covers/475.jpg"},
-  {f:"476-fix.html",n:476,s:"fix",t:"Fnf Mods",c:"covers/476.jpg"},
-  {f:"477-fix.html",n:477,s:"fix",t:"Die",c:"covers/477.jpg"},
-  {f:"478-fix.html",n:478,s:"fix",t:"Fnf Mods",c:"covers/478.jpg"},
-  {f:"479-fix.html",n:479,s:"fix",t:"Steal Brainrot",c:"covers/479.jpg"},
-  {f:"480-fix.html",n:480,s:"fix",t:"Fnf Mods",c:"covers/480.jpg"},
-  {f:"481-fix.html",n:481,s:"fix",t:"Die",c:"covers/481.jpg"},
-  {f:"482-fix2.html",n:482,s:"fix2",t:"Human Expenditure Program",c:"covers/482.jpg"},
-  {f:"483-fix.html",n:483,s:"fix",t:"Friday Night Funkin'",c:"covers/483.jpg"},
-  {f:"484-fix.html",n:484,s:"fix",t:"Friday Night Funkin'",c:"covers/484.jpg"},
-  {f:"485-fix.html",n:485,s:"fix",t:"Maths",c:"covers/485.jpg"},
-  {f:"486-fix.html",n:486,s:"fix",t:"Friday Night Funkin'",c:"covers/486.jpg"},
-  {f:"487-fix.html",n:487,s:"fix",t:"Friday Night Funkin'",c:"covers/487.jpg"},
-  {f:"488-fix.html",n:488,s:"fix",t:"Friday Night Funkin'",c:"covers/488.jpg"},
-  {f:"489-fix.html",n:489,s:"fix",t:"FNF Mods",c:"covers/489.jpg"},
-  {f:"490-fix.html",n:490,s:"fix",t:"Roof Snipe 2",c:"covers/490.jpg"},
-  {f:"491-fix.html",n:491,s:"fix",t:"Nextyou",c:"covers/491.jpg"},
-  {f:"492-fix.html",n:492,s:"fix",t:"Underwheels",c:"covers/492.jpg"},
-  {f:"493-fix.html",n:493,s:"fix",t:"Rig BMX",c:"covers/493.jpg"},
-  {f:"494-fix.html",n:494,s:"fix",t:"Rig BMX 2",c:"covers/494.jpg"},
-  {f:"495-fix.html",n:495,s:"fix",t:"Groongroon",c:"covers/495.png"},
-  {f:"496-fix.html",n:496,s:"fix",t:"Waycrosspublicmedia.Github.Io",c:"covers/496.jpg"},
-  {f:"497-fix.html",n:497,s:"fix",t:"Waycrosspublicmedia.Github.Io",c:"covers/497.jpg"},
-  {f:"498-fix.html",n:498,s:"fix",t:"Waycrosspublicmedia.Github.Io",c:"covers/498.jpg"},
-  {f:"499-fix.html",n:499,s:"fix",t:"Waycrosspublicmedia.Github.Io",c:"covers/499.jpg"},
-  {f:"500-fix.html",n:500,s:"fix",t:"FNF Mods",c:"covers/500.jpg"},
-  {f:"501-fix.html",n:501,s:"fix",t:"Kindergarten 3",c:"covers/501.jpg"},
-  {f:"502-fix2.html",n:502,s:"fix2",t:"Portsv 4",c:"covers/502.jpg"},
-  {f:"503-fix.html",n:503,s:"fix",t:"Fnac",c:"covers/503.jpg"},
-  {f:"504-fix.html",n:504,s:"fix",t:"Fnac",c:"covers/504.jpg"},
-  {f:"505-fix2.html",n:505,s:"fix2",t:"Pokemon - Red Version",c:"covers/505.jpg"},
-  {f:"506-fix2.html",n:506,s:"fix2",t:"pokemonemerald",c:"covers/506.jpg"},
-  {f:"507-fix2.html",n:507,s:"fix2",t:"Impossiblequiz",c:"covers/507.jpg"},
-  {f:"508-fix2.html",n:508,s:"fix2",t:"",c:"covers/508.jpg"},
-  {f:"509-fix.html",n:509,s:"fix",t:"Die",c:"covers/509.jpg"},
-  {f:"510-fix2.html",n:510,s:"fix2",t:"Tomodachi Collection",c:"covers/510.jpg"},
-  {f:"511-fix.html",n:511,s:"fix",t:"3 Kh 0 Assets",c:"covers/511.jpg"},
-  {f:"512-fix.html",n:512,s:"fix",t:"Final Earth 2",c:"covers/512.jpg"},
-  {f:"513-fix2.html",n:513,s:"fix2",t:"Biologyexams",c:"covers/513.jpg"},
-  {f:"514-fix2.html",n:514,s:"fix2",t:"Biologyexams",c:"covers/514.jpg"},
-  {f:"515-fix2.html",n:515,s:"fix2",t:"Biologyexams",c:"covers/515.jpg"},
-  {f:"516-fix2.html",n:516,s:"fix2",t:"Biologyexams",c:"covers/516.jpg"},
-  {f:"517-fix2.html",n:517,s:"fix2",t:"Biologyexams",c:"covers/517.jpg"},
-  {f:"518-fix2.html",n:518,s:"fix2",t:"Biologyexams",c:"covers/518.jpg"},
-  {f:"519-fix2.html",n:519,s:"fix2",t:"Biologyexams",c:"covers/519.jpg"},
-  {f:"520-fix4.html",n:520,s:"fix4",t:"Man",c:"covers/520.jpg"},
-  {f:"521-fix2.html",n:521,s:"fix2",t:"Biologyexams",c:"covers/521.jpg"},
-  {f:"522-fix2.html",n:522,s:"fix2",t:"Biologyexams",c:"covers/522.jpg"},
-  {f:"523-fix2.html",n:523,s:"fix2",t:"Touhou Mother",c:"covers/523.jpg"},
-  {f:"524-fix2.html",n:524,s:"fix2",t:"PaRappa the Rapper",c:"covers/524.jpg"},
-  {f:"525-fix.html",n:525,s:"fix",t:"Livediesmos",c:"covers/525.jpg"},
-  {f:"526-fix.html",n:526,s:"fix",t:"Spongebob Landho",c:"covers/526.jpg"},
-  {f:"527-fix.html",n:527,s:"fix",t:"Spongebob Run",c:"covers/527.jpg"},
-  {f:"528-fix.html",n:528,s:"fix",t:"Spongebob Sizzle",c:"covers/528.jpg"},
-  {f:"529-fix.html",n:529,s:"fix",t:"Spongebob Stacker",c:"covers/529.png"},
-  {f:"530-fix.html",n:530,s:"fix",t:"Spongebob Tasty",c:"covers/530.png"},
-  {f:"531-fix.html",n:531,s:"fix",t:"Spongebob Thekahrahtaysquid",c:"covers/531.png"},
-  {f:"532-fix.html",n:532,s:"fix",t:"Spongebob Weresquirrel",c:"covers/532.png"},
-  {f:"533-fix.html",n:533,s:"fix",t:"Krabbykatch",c:"covers/533.png"},
-  {f:"534-fix.html",n:534,s:"fix",t:"Jumpjousts",c:"covers/534.jpg"},
-  {f:"535-fix.html",n:535,s:"fix",t:"Jumpjousts 2",c:"covers/535.jpg"},
-  {f:"536-fix.html",n:536,s:"fix",t:"Catconnection",c:"covers/536.jpg"},
-  {f:"537-fix.html",n:537,s:"fix",t:"Catgunner",c:"covers/537.jpg"},
-  {f:"538-fix.html",n:538,s:"fix",t:"Love Letters",c:"covers/538.jpg"},
-  {f:"539-fix.html",n:539,s:"fix",t:"Chiipuz",c:"covers/539.jpg"},
-  {f:"540-fix.html",n:540,s:"fix",t:"Teardrop",c:"covers/540.png"},
-  {f:"541-fix.html",n:541,s:"fix",t:"Maths",c:"covers/541.jpg"},
-  {f:"542-fix2.html",n:542,s:"fix2",t:"Karlson",c:"covers/542.jpg"},
-  {f:"543-fix2.html",n:543,s:"fix2",t:"Jelly Drift",c:"covers/543.jpg"},
-  {f:"544-fix.html",n:544,s:"fix",t:"Plinko",c:"covers/544.jpg"},
-  {f:"545-fix.html",n:545,s:"fix",t:"Clashofvikings",c:"covers/545.jpg"},
-  {f:"546-fix.html",n:546,s:"fix",t:"Recoil",c:"covers/546.jpg"},
-  {f:"547-fix.html",n:547,s:"fix",t:"Baseball Bros",c:"covers/547.jpg"},
-  {f:"548-fix.html",n:548,s:"fix",t:"Football Bros",c:"covers/548.jpg"},
-  {f:"549-fix.html",n:549,s:"fix",t:"Sonic 2",c:"covers/549.jpg"},
-  {f:"550-fix.html",n:550,s:"fix",t:"Sonic 3",c:"covers/550.png"},
-  {f:"551-fix.html",n:551,s:"fix",t:"",c:"covers/551.jpg"},
-  {f:"552-fix2.html",n:552,s:"fix2",t:"Aviamaster",c:"covers/552.jpg"},
-  {f:"553-fix2.html",n:553,s:"fix2",t:"Rolling Sky",c:"covers/553.png"},
-  {f:"554-fix2.html",n:554,s:"fix2",t:"Yandere Simulator",c:"covers/554.jpg"},
-  {f:"555-fix.html",n:555,s:"fix",t:"Die",c:"covers/555.jpg"},
-  {f:"556-fix.html",n:556,s:"fix",t:"Fnf Mods",c:"covers/556.jpg"},
-  {f:"557-fix2.html",n:557,s:"fix2",t:"Getting Over It",c:"covers/557.jpg"},
-  {f:"558-fix.html",n:558,s:"fix",t:"Diesmosfilehost",c:"covers/558.jpg"},
-  {f:"559-fix.html",n:559,s:"fix",t:"Die",c:"covers/559.jpg"},
-  {f:"560-fix2.html",n:560,s:"fix2",t:"Deltatraveler",c:"covers/560.jpg"},
-  {f:"561-fix2.html",n:561,s:"fix2",t:"Bit Gun.io",c:"covers/561.jpg"},
-  {f:"562-fix2.html",n:562,s:"fix2",t:"Boom Slingers Reboom",c:"covers/562.jpg"},
-  {f:"563-fix2.html",n:563,s:"fix2",t:"Cg Fc 24",c:"covers/563.jpg"},
-  {f:"564-fix2.html",n:564,s:"fix2",t:"Count Masters Stickman Games",c:"covers/564.jpg"},
-  {f:"565-fix2.html",n:565,s:"fix2",t:"Dalgona Candy Honeycomb Cookie",c:"covers/565.jpg"},
-  {f:"567-fix2.html",n:567,s:"fix2",t:"Highway Racer",c:"covers/567.jpg"},
-  {f:"568-fix2.html",n:568,s:"fix2",t:"Highway Racer 2",c:"covers/568.jpg"},
-  {f:"569-fix2.html",n:569,s:"fix2",t:"Hula Hoop Race",c:"covers/569.jpg"},
-  {f:"570-fix2.html",n:570,s:"fix2",t:"Jelly Restaurant",c:"covers/570.jpg"},
-  {f:"571-fix2.html",n:571,s:"fix2",t:"Layers Roll",c:"covers/571.jpg"},
-  {f:"572-fix2.html",n:572,s:"fix2",t:"Lazy Jumper",c:"covers/572.jpg"},
-  {f:"573-fix2.html",n:573,s:"fix2",t:"Man Runner 2048",c:"covers/573.jpg"},
-  {f:"574-fix2.html",n:574,s:"fix2",t:"Pottery Master",c:"covers/574.jpg"},
-  {f:"575-fix2.html",n:575,s:"fix2",t:"Shovel 3D",c:"covers/575.jpg"},
-  {f:"576-fix2.html",n:576,s:"fix2",t:"Sky Riders",c:"covers/576.jpg"},
-  {f:"577-fix2.html",n:577,s:"fix2",t:"Steal Brainrot Online",c:"covers/577.jpg"},
-  {f:"578-fix2.html",n:578,s:"fix2",t:"Stickman And Guns",c:"covers/578.jpg"},
-  {f:"579-fix2.html",n:579,s:"fix2",t:"Super Star Car",c:"covers/579.jpg"},
-  {f:"580-fix2.html",n:580,s:"fix2",t:"Traffic Rider",c:"covers/580.jpg"},
-  {f:"581-fix2.html",n:581,s:"fix2",t:"BuildNow GG",c:"covers/581.jpg"},
-  {f:"582-fix.html",n:582,s:"fix",t:"Diesmosfilehost",c:"covers/582.jpg"},
-  {f:"583-fix.html",n:583,s:"fix",t:"Die",c:"covers/583.jpg"},
-  {f:"584-fix.html",n:584,s:"fix",t:"Stone Grass Mowing Simulator",c:null},
-  {f:"585-fix.html",n:585,s:"fix",t:"Dosbox",c:"covers/585.png"},
-  {f:"586-fix.html",n:586,s:"fix",t:"Dosbox",c:"covers/586.jpg"},
-  {f:"587-fix2.html",n:587,s:"fix2",t:"Ngr",c:"covers/587.jpg"},
-  {f:"588-fix.html",n:588,s:"fix",t:"Super Mario 64",c:"covers/588.jpg"},
-  {f:"589-fix3.html",n:589,s:"fix3",t:"Ugs Soniccd",c:"covers/589.jpg"},
-  {f:"590-fix3.html",n:590,s:"fix3",t:"Sonic Mania Inyourbrowser",c:"covers/590.jpg"},
-  {f:"591-fix2.html",n:591,s:"fix2",t:"Slime Ranchers",c:"covers/591.jpg"},
-  {f:"592-fix3.html",n:592,s:"fix3",t:"Pac Man World",c:"covers/592.jpg"},
-  {f:"593-fix2.html",n:593,s:"fix2",t:"Pac-Man World 2",c:"covers/593.jpg"},
-  {f:"594-fix2.html",n:594,s:"fix2",t:"Waterworks",c:"covers/594.jpg"},
-  {f:"595-fix2.html",n:595,s:"fix2",t:"Shapezio",c:"covers/595.jpg"},
-  {f:"596-fix2.html",n:596,s:"fix2",t:"",c:null},
-  {f:"597-fix2.html",n:597,s:"fix2",t:"Gardenless",c:"covers/597.png"},
-  {f:"598-fix2.html",n:598,s:"fix2",t:"Sonic.Exe",c:"covers/598.jpg"},
-  {f:"599-fix3.html",n:599,s:"fix3",t:"Metal Gear Solid",c:"covers/599.jpg"},
-  {f:"600-fix.html",n:600,s:"fix",t:"Fnf Mods",c:"covers/600.jpg"},
-  {f:"601-fix.html",n:601,s:"fix",t:"Fnf Mods",c:"covers/601.jpg"},
-  {f:"602-fix.html",n:602,s:"fix",t:"Dosbox",c:"covers/602.jpg"},
-  {f:"603-fix2.html",n:603,s:"fix2",t:"Growden.Io",c:"covers/603.jpg"},
-  {f:"604-fix2.html",n:604,s:"fix2",t:"Minesweeper Plus 2.1",c:"covers/604.jpg"},
-  {f:"605-fix2.html",n:605,s:"fix2",t:"Schoolboy Runaway",c:"covers/605.jpg"},
-  {f:"606-fix2.html",n:606,s:"fix2",t:"Sonic.Exe",c:"covers/606.jpg"},
-  {f:"607-fix2.html",n:607,s:"fix2",t:"Tattletail",c:"covers/607.jpg"},
-  {f:"608-fix.html",n:608,s:"fix",t:"Fnf Mods",c:"covers/608.jpg"},
-  {f:"609-fix2.html",n:609,s:"fix2",t:"Fnf Mods",c:"covers/609.jpg"},
-  {f:"610-fix.html",n:610,s:"fix",t:"Fnf Mods",c:"covers/610.jpg"},
-  {f:"611-fix2.html",n:611,s:"fix2",t:"Legend of Zelda, The - Ocarina of Time",c:"covers/611.jpg"},
-  {f:"612-fix2.html",n:612,s:"fix2",t:"Legend of Zelda, The - Majora's Mask",c:"covers/612.jpg"},
-  {f:"613-fix.html",n:613,s:"fix",t:"Fnf Mods",c:"covers/613.png"},
-  {f:"614-fix.html",n:614,s:"fix",t:"Toy Rider",c:"covers/614.png"},
-  {f:"615.html-a",n:615,s:"a",t:"Fnf Mods",c:"covers/615.jpg"},
-  {f:"616-fix.html",n:616,s:"fix",t:"Fnf Mods",c:"covers/616.jpg"},
-  {f:"617-fix2.html",n:617,s:"fix2",t:"Ugs",c:"covers/617.jpg"},
-  {f:"618-fix.html",n:618,s:"fix",t:"Fnf Bob.S Onslaught",c:"covers/618.jpg"},
-  {f:"619-fix.html",n:619,s:"fix",t:"Fnf Mods",c:"covers/619.png"},
-  {f:"620-fix2.html",n:620,s:"fix2",t:"",c:"covers/620.jpg"},
-  {f:"621-fix.html",n:621,s:"fix",t:"Images",c:"covers/621.jpg"},
-  {f:"622-fix.html",n:622,s:"fix",t:"Oneshotthing",c:"covers/622.jpg"},
-  {f:"623-fix2.html",n:623,s:"fix2",t:"Celeste",c:"covers/623.jpg"},
-  {f:"624-fix.html",n:624,s:"fix",t:"Openwheels",c:"covers/624.jpg"},
-  {f:"625-fix.html",n:625,s:"fix",t:"Get Yoked",c:"covers/625.jpg"},
-  {f:"626-fix2.html",n:626,s:"fix2",t:"Doom 3",c:"covers/626.jpg"},
-  {f:"627-fix3.html",n:627,s:"fix3",t:"Ruffle",c:"covers/627.jpg"},
-  {f:"628-fix2.html",n:628,s:"fix2",t:"Scoutdingo",c:"covers/628.jpg"},
-  {f:"629-fix.html",n:629,s:"fix",t:"OFF",c:"covers/629.png"},
-  {f:"630-fix.html",n:630,s:"fix",t:"Space Funeral",c:"covers/630.jpg"},
-  {f:"631-fix2.html",n:631,s:"fix2",t:"Endroll",c:"covers/631.jpg"},
-  {f:"632-fix2.html",n:632,s:"fix2",t:"New 25 Said.Github.Io",c:"covers/632.jpg"},
-  {f:"633-fix.html",n:633,s:"fix",t:"Fnf Mods",c:"covers/633.jpg"},
-  {f:"634-fix.html",n:634,s:"fix",t:"Fnf Mods",c:"covers/634.jpg"},
-  {f:"635-fix.html",n:635,s:"fix",t:"Spelunky",c:"covers/635.jpg"},
-  {f:"636-fix.html",n:636,s:"fix",t:"Fnf Mods",c:"covers/636.png"},
-  {f:"637-fix3.html",n:637,s:"fix3",t:"Html 5 B",c:"covers/637.jpg"},
-  {f:"638-fix2.html",n:638,s:"fix2",t:"5 Bshi",c:"covers/638.gif"},
-  {f:"639-fix.html",n:639,s:"fix",t:"Fnf Mods",c:"covers/639.jpg"},
-  {f:"640-fix.html",n:640,s:"fix",t:"MAD 2",c:"covers/640.jpg"},
-  {f:"641-fix.html",n:641,s:"fix",t:"Idkgodzila",c:"covers/641.png"},
-  {f:"642-fix.html",n:642,s:"fix",t:"Fnf Mods",c:"covers/642.png"},
-  {f:"643-fix.html",n:643,s:"fix",t:"Rio Rex",c:"covers/643.jpg"},
-  {f:"644-fix.html",n:644,s:"fix",t:"Die",c:"covers/644.jpg"},
-  {f:"645-fix2.html",n:645,s:"fix2",t:"Arthurs Nightmare",c:"covers/645.jpg"},
-  {f:"646-fix2.html",n:646,s:"fix2",t:"Buster Jam",c:"covers/646.jpg"},
-  {f:"647-fix2.html",n:647,s:"fix2",t:"Super Smash Flash",c:"covers/647.jpg"},
-  {f:"648-fix2.html",n:648,s:"fix2",t:"Mindwave",c:"covers/648.jpg"},
-  {f:"649-fix.html",n:649,s:"fix",t:"Look Outside",c:"covers/649.jpg"},
-  {f:"650-fix2.html",n:650,s:"fix2",t:"Milk Bag Games",c:"covers/650.jpg"},
-  {f:"651-fix.html",n:651,s:"fix",t:"Milk Bag Games",c:"covers/651.jpg"},
-  {f:"653-fix2.html",n:653,s:"fix2",t:"1 Date Danger",c:"covers/653.jpg"},
-  {f:"654-fix3.html",n:654,s:"fix3",t:"Final Fantasy VII",c:"covers/654.jpg"},
-  {f:"655-fix.html",n:655,s:"fix",t:"Goblin Goop",c:"covers/655.jpg"},
-  {f:"656-fix.html",n:656,s:"fix",t:"Rogue Sergeant",c:"covers/656.jpg"},
-  {f:"657-fix.html",n:657,s:"fix",t:"Fnf Mods",c:"covers/657.png"},
-  {f:"658-fix.html",n:658,s:"fix",t:"Midnight Shift",c:"covers/658.jpg"},
-  {f:"659-fix.html",n:659,s:"fix",t:"Roulette",c:"covers/659.png"},
-  {f:"660-fix.html",n:660,s:"fix",t:"Please Dont Touch",c:"covers/660.jpg"},
-  {f:"661-fix2.html",n:661,s:"fix2",t:"",c:"covers/661.jpg"},
-  {f:"662-fix2.html",n:662,s:"fix2",t:"Going Balls",c:"covers/662.jpg"},
-  {f:"663-fix2.html",n:663,s:"fix2",t:"3D Bolt Master",c:"covers/663.jpg"},
-  {f:"664-fix2.html",n:664,s:"fix2",t:"Tall.io",c:"covers/664.jpg"},
-  {f:"665-fix2.html",n:665,s:"fix2",t:"Match Triple 3D",c:"covers/665.jpg"},
-  {f:"666-fix2.html",n:666,s:"fix2",t:"Stick War Legacy",c:"covers/666.jpg"},
-  {f:"667-fix2.html",n:667,s:"fix2",t:"In Stars And Time",c:"covers/667.jpg"},
-  {f:"668-fix3.html",n:668,s:"fix3",t:"Gorilla Tag",c:"covers/668.jpg"},
-  {f:"669-fix.html",n:669,s:"fix",t:"Terraria",c:"covers/669.jpg"},
-  {f:"670-fix.html",n:670,s:"fix",t:"Raldi",c:"covers/670.jpg"},
-  {f:"671-fix2.html",n:671,s:"fix2",t:"Wbwwb",c:"covers/671.jpg"},
-  {f:"672-fix2.html",n:672,s:"fix2",t:"Adgac",c:"covers/672.jpg"},
-  {f:"673-fix.html",n:673,s:"fix",t:"Hobo",c:"covers/673.jpg"},
-  {f:"674-fix.html",n:674,s:"fix",t:"Hobo 2",c:"covers/674.jpg"},
-  {f:"675-fix.html",n:675,s:"fix",t:"Hobo 3",c:"covers/675.jpg"},
-  {f:"676-fix.html",n:676,s:"fix",t:"Hobo 4",c:"covers/676.jpg"},
-  {f:"677-fix.html",n:677,s:"fix",t:"Hobo 5",c:"covers/677.jpg"},
-  {f:"678-fix.html",n:678,s:"fix",t:"Hobo 6",c:"covers/678.jpg"},
-  {f:"679-fix.html",n:679,s:"fix",t:"Hobo 7",c:"covers/679.jpg"},
-  {f:"680-fix3.html",n:680,s:"fix3",t:"Kirby Super Star Ultra",c:"covers/680.jpg"},
-  {f:"681-fix2.html",n:681,s:"fix2",t:"Cooking Mama",c:"covers/681.jpg"},
-  {f:"682-fix2.html",n:682,s:"fix2",t:"Cooking Mama 2 - Dinner with Friends",c:"covers/682.jpg"},
-  {f:"683-fix2.html",n:683,s:"fix2",t:"Cooking Mama 3 - Shop & Chop",c:"covers/683.jpg"},
-  {f:"684-fix3.html",n:684,s:"fix3",t:"Kirby - Squeak Squad",c:"covers/684.jpg"},
-  {f:"685-fix2.html",n:685,s:"fix2",t:"FIFA Soccer 11",c:"covers/685.jpg"},
-  {f:"686-fix2.html",n:686,s:"fix2",t:"FIFA 10",c:"covers/686.jpg"},
-  {f:"687-fix.html",n:687,s:"fix",t:"Pico 2006",c:"covers/687.jpg"},
-  {f:"688-fix.html",n:688,s:"fix",t:"Ugs",c:"covers/688.jpg"},
-  {f:"689-fix.html",n:689,s:"fix",t:"Ugs",c:"covers/689.jpg"},
-  {f:"690-fix.html",n:690,s:"fix",t:"Friday Night Funkin'",c:"covers/690.png"},
-  {f:"691-fix.html",n:691,s:"fix",t:"Friday Night Funkin'",c:"covers/691.jpg"},
-  {f:"692-fix.html",n:692,s:"fix",t:"Soft And Wet",c:"covers/692.jpg"},
-  {f:"693-fix.html",n:693,s:"fix",t:"Hl",c:"covers/693.jpg"},
-  {f:"694-fix2.html",n:694,s:"fix2",t:"rom",c:"covers/694.jpg"},
-  {f:"695-fix.html",n:695,s:"fix",t:"Duck 8",c:"covers/695.jpg"},
-  {f:"696-fix3.html",n:696,s:"fix3",t:"Pokemon HeartGold",c:"covers/696.jpg"},
-  {f:"697-fix2.html",n:697,s:"fix2",t:"Bank Robbery",c:"covers/697.jpg"},
-  {f:"698-fix2.html",n:698,s:"fix2",t:"Bank Robbery 3",c:"covers/698.jpg"},
-  {f:"699-fix.html",n:699,s:"fix",t:"Stickman Destruction",c:"covers/699.jpg"},
-  {f:"700-fix.html",n:700,s:"fix",t:"FNF Mods",c:"covers/700.jpg"},
-  {f:"701-fix.html",n:701,s:"fix",t:"Flight Sim",c:"covers/701.jpg"},
-  {f:"702-fix.html",n:702,s:"fix",t:"",c:"covers/702.jpg"},
-  {f:"703-fix.html",n:703,s:"fix",t:"Fnf Mods",c:"covers/703.jpg"},
-  {f:"704-fix2.html",n:704,s:"fix2",t:"FNaF World: Refreshed",c:"covers/704.jpg"},
-  {f:"705-fix2.html",n:705,s:"fix2",t:"Iron Lung",c:"covers/705.jpg"},
-  {f:"706-fix2.html",n:706,s:"fix2",t:"Fear And Hunger",c:"covers/706.jpg"},
-  {f:"707-fix2.html",n:707,s:"fix2",t:"Traffic Racer",c:"covers/707.jpg"},
-  {f:"708-fix2.html",n:708,s:"fix2",t:"Needy Streamer Overload",c:"covers/708.jpg"},
-  {f:"709-fix2.html",n:709,s:"fix2",t:"Survivor",c:"covers/709.jpg"},
-  {f:"710-fix2.html",n:710,s:"fix2",t:"Fnae",c:"covers/710.jpg"},
-  {f:"711-fix.html",n:711,s:"fix",t:"Antonblast",c:"covers/711.jpg"},
-  {f:"712-fix2.html",n:712,s:"fix2",t:"Jumbo Mario",c:"covers/712.jpg"},
-  {f:"713-fix2.html",n:713,s:"fix2",t:"Silent Hill",c:"covers/713.jpg"},
-  {f:"714-fix.html",n:714,s:"fix",t:"Fnf Mods",c:"covers/714.jpg"},
-  {f:"715-fix.html",n:715,s:"fix",t:"Fnf Mods",c:"covers/715.jpg"},
-  {f:"716-fix3.html",n:716,s:"fix3",t:"Clover Pit",c:"covers/716.jpg"},
-  {f:"717-fix3.html",n:717,s:"fix3",t:"Peaks Of Yore",c:"covers/717.jpg"},
-  {f:"718-fix.html",n:718,s:"fix",t:"Untitled Goose Game",c:"covers/718.jpg"},
-  {f:"719-fix2.html",n:719,s:"fix2",t:"A Game Black Hole",c:"covers/719.jpg"},
-  {f:"720-fix.html",n:720,s:"fix",t:"Portsv 4",c:"covers/720.jpg"},
-  {f:"721-fix.html",n:721,s:"fix",t:"Shiftatmidnightport",c:"covers/721.jpg"},
-  {f:"722-fix2.html",n:722,s:"fix2",t:"Portsv 4",c:"covers/722.jpg"},
-  {f:"723-fix.html",n:723,s:"fix",t:"Ugs",c:"covers/723.jpg"},
-  {f:"724-fix.html",n:724,s:"fix",t:"Ugs",c:"covers/724.jpg"},
-  {f:"725-fix2.html",n:725,s:"fix2",t:"Shredsauce",c:"covers/725.jpg"},
-  {f:"726-fix2.html",n:726,s:"fix2",t:"about:blank",c:"covers/726.png"},
-  {f:"727-fix.html",n:727,s:"fix",t:"Dimension Incident",c:"covers/727.jpg"},
-  {f:"728-fix.html",n:728,s:"fix",t:"Fear Assessment",c:"covers/728.jpg"},
-  {f:"729-fix.html",n:729,s:"fix",t:"Game Inside Game",c:"covers/729.jpg"},
-  {f:"730-fix2.html",n:730,s:"fix2",t:"3 Kh 0 Assets",c:"covers/730.jpg"},
-  {f:"731-fix.html",n:731,s:"fix",t:"Ut Last Breath",c:"covers/731.jpg"},
-  {f:"732-fix.html",n:732,s:"fix",t:"64-in-1 (J) [p1]",c:"covers/732.jpg"},
-  {f:"733-fix2.html",n:733,s:"fix2",t:"Tetris",c:"covers/733.jpg"},
-  {f:"734-fix.html",n:734,s:"fix",t:"Christmas Massacre",c:"covers/734.jpg"},
-  {f:"735-fix.html",n:735,s:"fix",t:"famidash",c:"covers/735.png"},
-  {f:"735-fix2.html",n:735,s:"fix2",t:"Famidash.v1.2.8",c:"covers/735.png"},
-  {f:"736-fix.html",n:736,s:"fix",t:"Super Mario Bros.",c:"covers/736.jpg"},
-  {f:"737-fix.html",n:737,s:"fix",t:"Saihate Station",c:"covers/737.jpg"},
-  {f:"738-fix3.html",n:738,s:"fix3",t:"Dumb Ways To Die",c:"covers/738.jpg"},
-  {f:"739-fix2.html",n:739,s:"fix2",t:"",c:"covers/739.jpg"},
-  {f:"740-fix2.html",n:740,s:"fix2",t:"Bart Blast",c:"covers/740.jpg"},
-  {f:"741-fix3.html",n:741,s:"fix3",t:"Resident Evil",c:"covers/741.jpg"},
-  {f:"742-fix2.html",n:742,s:"fix2",t:"Resident Evil 2",c:"covers/742.jpg"},
-  {f:"743-fix.html",n:743,s:"fix",t:"Power Hover",c:"covers/743.jpg"},
-  {f:"744-fix2.html",n:744,s:"fix2",t:"Escaperoad 2 City",c:"covers/744.jpg"},
-  {f:"745-fix2.html",n:745,s:"fix2",t:"Tetris",c:"covers/745.jpg"},
-  {f:"746-fix.html",n:746,s:"fix",t:"Fpn Fully Recrafted",c:"covers/746.jpg"},
-  {f:"747-fix.html",n:747,s:"fix",t:"Worst Time Sim",c:"covers/747.jpg"},
-  {f:"748-fix.html",n:748,s:"fix",t:"Undertale Last Breath Remake Bad Time Simulator",c:"covers/748.jpg"},
-  {f:"749-fix.html",n:749,s:"fix",t:"Webmonkeyball",c:"covers/749.jpg"},
-  {f:"750-fix2.html",n:750,s:"fix2",t:"Last Breath Epstein",c:"covers/750.jpg"},
-  {f:"751-fix.html",n:751,s:"fix",t:"Jeffrey Epsteins Basics In Education And Kidnapping",c:"covers/751.jpg"},
-  {f:"752-fix.html",n:752,s:"fix",t:"Badpiggies",c:"covers/752.jpg"},
-  {f:"753-fix.html",n:753,s:"fix",t:"Breaklock",c:"covers/753.jpg"},
-  {f:"754-fix2.html",n:754,s:"fix2",t:"Mcpeweb",c:"covers/754.jpg"},
-  {f:"755-fix2.html",n:755,s:"fix2",t:"Brawl 3D",c:"covers/755.jpg"},
-  {f:"756-fix2.html",n:756,s:"fix2",t:"Witch Heart",c:"covers/756.jpg"},
-  {f:"757-fix2.html",n:757,s:"fix2",t:"Ultrapoolwebport Nothreads",c:"covers/757.jpg"},
-  {f:"758-fix2.html",n:758,s:"fix2",t:"Baldi Caseoh",c:"covers/758.jpg"},
-  {f:"759-fix.html",n:759,s:"fix",t:"Diceamillion",c:"covers/759.jpg"},
-  {f:"760-fix2.html",n:760,s:"fix2",t:"Stardew Decomp",c:"covers/760.jpg"},
-  {f:"761-fix.html",n:761,s:"fix",t:"Fish",c:"covers/761.jpg"},
-  {f:"762-fix.html",n:762,s:"fix",t:"Portsandrips",c:"covers/762.jpg"},
-  {f:"763-fix.html",n:763,s:"fix",t:"Flying Gorilla",c:"covers/763.jpg"},
-  {f:"764-fix.html",n:764,s:"fix",t:"Newports",c:"covers/764.jpg"},
-  {f:"765-fix.html",n:765,s:"fix",t:"Idk",c:"covers/765.jpg"},
-  {f:"766-fix2.html",n:766,s:"fix2",t:"Httplibrary",c:"covers/766.jpg"},
-  {f:"767-fix.html",n:767,s:"fix",t:"Junk",c:"covers/767.jpg"},
-  {f:"768-fix2.html",n:768,s:"fix2",t:"All",c:"covers/768.jpg"},
-  {f:"769-fix2.html",n:769,s:"fix2",t:"Koans",c:"covers/769.jpg"},
-  {f:"770-fix2.html",n:770,s:"fix2",t:"Srb 2",c:"covers/770.jpg"},
-  {f:"771-fix2.html",n:771,s:"fix2",t:"Hollow Knight Silksong",c:"covers/771.jpg"},
-  {f:"772-fix.html",n:772,s:"fix",t:"Dosbox",c:"covers/772.jpg"},
-  {f:"773-fix.html",n:773,s:"fix",t:"Ugs",c:"covers/773.png"},
-  {f:"774-fix2.html",n:774,s:"fix2",t:"",c:"covers/774.jpg"},
-  {f:"775-fix.html",n:775,s:"fix",t:"Stupidbartbash",c:"covers/775.jpg"},
-  {f:"776-fix.html",n:776,s:"fix",t:"Yomi Hustle",c:"covers/776.jpg"},
-  {f:"777-fix2.html",n:777,s:"fix2",t:"Outhold",c:"covers/777.jpg"},
-  {f:"778-fix.html",n:778,s:"fix",t:"Laingame",c:"covers/778.jpg"},
-  {f:"779-fix.html",n:779,s:"fix",t:"Dosbox",c:"covers/779.png"},
-  {f:"780-fix.html",n:780,s:"fix",t:"Tta 3",c:"covers/780.jpg"},
-  {f:"781-fix.html",n:781,s:"fix",t:"Scratch Inc",c:"covers/781.jpg"},
-  {f:"782-fix3.html",n:782,s:"fix3",t:"Um Jammer Lammy",c:"covers/782.jpg"},
-  {f:"783-fix.html",n:783,s:"fix",t:"Apesvshelium",c:"covers/783.jpg"},
-  {f:"784-fix.html",n:784,s:"fix",t:"Gash",c:"covers/784.jpg"},
-  {f:"785-upd3.html",n:785,s:"upd3",t:"Web Dashers.Github.Io",c:"covers/785.jpg"},
-  {f:"786-fix2.html",n:786,s:"fix2",t:"",c:"covers/786.jpg"},
-  {f:"787-fix.html",n:787,s:"fix",t:"Portsandrips",c:"covers/787.jpg"},
-  {f:"788-fix2.html",n:788,s:"fix2",t:"Vib-Ribbon",c:"covers/788.jpg"},
-  {f:"789-fix2.html",n:789,s:"fix2",t:"Stardew Wasm",c:"covers/789.jpg"},
-  {f:"790-fix.html",n:790,s:"fix",t:"Helltaker",c:"covers/790.jpg"},
-  {f:"791-fix2.html",n:791,s:"fix2",t:"Daddygame",c:"covers/791.jpg"},
-  {f:"792-fix2.html",n:792,s:"fix2",t:"Escape Road 3",c:"covers/792.jpg"},
-  {f:"793-fix.html",n:793,s:"fix",t:"Lethal Ape",c:"covers/793.jpg"},
-  {f:"794-fix2.html",n:794,s:"fix2",t:"Fear And Hunger 2",c:"covers/794.jpg"},
-  {f:"795-fix.html",n:795,s:"fix",t:"Uvuvwevwevwe Onyetenvewve Ugwemubwem Ossas",c:"covers/795.jpg"},
-  {f:"796-fix.html",n:796,s:"fix",t:"Slendytubbies",c:"covers/796.jpg"},
-  {f:"797-fix.html",n:797,s:"fix",t:"Fih",c:"covers/797.jpg"},
-  {f:"798-fix2.html",n:798,s:"fix2",t:"Hungry Lamu",c:"covers/798.jpg"},
-  {f:"799-fix3.html",n:799,s:"fix3",t:"Useless",c:"covers/799.jpg"},
-  {f:"800-fix2.html",n:800,s:"fix2",t:"Useless",c:"covers/800.jpg"},
-  {f:"801-fix3.html",n:801,s:"fix3",t:"Ugs",c:"covers/801.jpg"},
-  {f:"802-fix.html",n:802,s:"fix",t:"",c:"covers/802.jpg"},
-  {f:"803-fix2.html",n:803,s:"fix2",t:"Batimweb",c:"covers/803.jpg"},
-  {f:"804-fix.html",n:804,s:"fix",t:"Idkwhatthisis",c:"covers/804.jpg"},
-  {f:"805-fix.html",n:805,s:"fix",t:"Plagueincevolved",c:"covers/805.jpg"},
-  {f:"806-fix.html",n:806,s:"fix",t:"Slendytubbies",c:"covers/806.jpg"},
-  {f:"807-fix.html",n:807,s:"fix",t:"Slendytubbies",c:"covers/807.jpg"},
-  {f:"808-fix.html",n:808,s:"fix",t:"Spaceflight Simulator",c:"covers/808.jpg"},
-  {f:"809-f.html",n:809,s:"f",t:"Rhythm Heaven",c:"covers/809.jpg"},
-  {f:"810-fix2.html",n:810,s:"fix2",t:"Need For Speed: Carbon",c:"covers/810.jpg"},
-  {f:"811-f.html",n:811,s:"f",t:"Need For Speed: Most Wanted",c:"covers/811.jpg"},
-  {f:"812-f.html",n:812,s:"f",t:"Need For Speed: Underground 2",c:"covers/812.jpg"},
-  {f:"813-f3.html",n:813,s:"f3",t:"Frickbears 3",c:"covers/813.jpg"},
-  {f:"814.html",n:814,s:"",t:"Miside",c:"covers/814.jpg"},
-  {f:"815.html",n:815,s:"",t:"Baldi Decomp",c:"covers/815.jpg"},
-  {f:"816.html",n:816,s:"",t:"Baldi Mods",c:"covers/816.jpg"},
-  {f:"817-f.html",n:817,s:"f",t:"Baldi Mods",c:"covers/817.jpg"},
-  {f:"818.html",n:818,s:"",t:"Baldi Mods",c:"covers/818.jpg"},
-  {f:"819-fix2.html",n:819,s:"fix2",t:"20 Minutes",c:"covers/819.jpg"},
-  {f:"820-fix2.html",n:820,s:"fix2",t:"Phoenix Wright - Ace Attorney",c:"covers/820.jpg"},
-  {f:"821-fix2.html",n:821,s:"fix2",t:"Apollo Justice - Ace Attorney",c:"covers/821.jpg"},
-  {f:"822-fix.html",n:822,s:"fix",t:"Phoenix Wright - Ace Attorney - Justice for All",c:"covers/822.jpg"},
-  {f:"823-fix2.html",n:823,s:"fix2",t:"Ace Attorney Investigations - Miles Edgeworth",c:"covers/823.jpg"},
-  {f:"824-fix.html",n:824,s:"fix",t:"Phoenix Wright - Ace Attorney - Trials and Tribulations",c:"covers/824.jpg"},
-  {f:"825.html",n:825,s:"",t:"Cruelty Squad",c:"covers/825.jpg"},
-  {f:"826-f.html",n:826,s:"f",t:"Jsab",c:"covers/826.jpg"},
-  {f:"827-f.html",n:827,s:"f",t:"Tabs",c:"covers/827.jpg"},
-  {f:"828.html",n:828,s:"",t:"Ac Gamecube",c:"covers/828.jpg"},
-  {f:"829.html",n:829,s:"",t:"Yksoft 1.Github.Io",c:"covers/829.jpg"},
-  {f:"830.html",n:830,s:"",t:"Yksoft 1.Github.Io",c:"covers/830.jpg"},
-  {f:"831.html",n:831,s:"",t:"Yksoft 1.Github.Io",c:"covers/831.jpg"},
-  {f:"832.html",n:832,s:"",t:"Yksoft 1.Github.Io",c:"covers/832.jpg"},
-  {f:"833.html",n:833,s:"",t:"Yksoft 1.Github.Io",c:"covers/833.jpg"},
-  {f:"834.html",n:834,s:"",t:"Junk",c:"covers/834.jpg"},
-  {f:"835-fix.html",n:835,s:"fix",t:"Yohohoio",c:"covers/835.jpg"},
-  {f:"836.html",n:836,s:"",t:"Fnf Mods",c:"covers/836.jpg"},
-  {f:"837-fix2.html",n:837,s:"fix2",t:"Gamelist.Github.Io",c:"covers/837.jpg"},
-  {f:"838.html",n:838,s:"",t:"",c:"covers/838.jpg"},
-  {f:"839.html",n:839,s:"",t:"SPLIT",c:"covers/839.jpg"},
-  {f:"840-fix2.html",n:840,s:"fix2",t:"Talking Hippo",c:"covers/840.jpg"},
-  {f:"841-f.html",n:841,s:"f",t:"WarioWare: Touched!",c:"covers/841.jpg"},
-  {f:"842.html",n:842,s:"",t:"Pvz",c:"covers/842.jpg"},
-  {f:"843.html",n:843,s:"",t:"La Madriguera",c:"covers/843.jpg"},
-  {f:"844-f.html",n:844,s:"f",t:"Hammer 2",c:"covers/844.jpg"},
-  {f:"845-fix2.html",n:845,s:"fix2",t:"Swordsandsandals 2",c:"covers/845.jpg"},
-  {f:"846.html",n:846,s:"",t:"",c:"covers/846.jpg"},
-  {f:"847.html",n:847,s:"",t:"Peak",c:"covers/847.jpg"},
-  {f:"848.html",n:848,s:"",t:"Clustertruck",c:"covers/848.jpg"},
-  {f:"849.html",n:849,s:"",t:"Wasm.Rip",c:"covers/849.jpg"},
-  {f:"850.html",n:850,s:"",t:"Lobcorp",c:"covers/850.jpg"},
-  {f:"851.html",n:851,s:"",t:"Helloworldscriptbasicfunctioncsharpiscool",c:"covers/851.jpg"},
-  {f:"852.html",n:852,s:"",t:"Granny 3 Webport",c:"covers/852.jpg"},
-  {f:"853.html",n:853,s:"",t:"Q 8 J",c:"covers/853.jpg"},
-  {f:"854.html",n:854,s:"",t:"Ravenfield",c:"covers/854.jpg"},
-  {f:"855.html",n:855,s:"",t:"Wasm.Rip",c:"covers/855.png"},
-  {f:"856.html",n:856,s:"",t:"Pikuniku",c:"covers/856.jpg"},
-  {f:"857.html",n:857,s:"",t:"Inscryptionwebport",c:"covers/857.jpg"},
-  {f:"858.html",n:858,s:"",t:"60 Seconds Webport",c:"covers/858.jpg"},
-  {f:"859-f.html",n:859,s:"f",t:"JoJo's Bizarre Adventure: Heritage for the Future",c:"covers/859.jpg"},
-  {f:"860.html",n:860,s:"",t:"Endacopia",c:"covers/860.jpg"},
-  {f:"861.html",n:861,s:"",t:"Fnfm",c:"covers/861.jpg"},
-  {f:"862.html",n:862,s:"",t:"Fnfm",c:"covers/862.jpg"},
-  {f:"863.html",n:863,s:"",t:"Fnf Mods",c:"covers/863.jpg"},
-  {f:"864-fix.html",n:864,s:"fix",t:"Fnf Mods V 2",c:"covers/864.jpg"},
-  {f:"865.html",n:865,s:"",t:"",c:"covers/865.jpg"},
-  {f:"866.html",n:866,s:"",t:"Team Fortress 2",c:"covers/866.jpg"},
-  {f:"867.html",n:867,s:"",t:"Gangbeast Webport",c:"covers/867.jpg"},
-  {f:"868-F3.html",n:868,s:"F3",t:"Geometry Dash",c:"covers/868.jpg"},
-  {f:"869.html",n:869,s:"",t:"FNaF: Into The Pit",c:"covers/869.jpg"},
-  {f:"870.html",n:870,s:"",t:"Sally Face",c:"covers/870.jpg"},
-  {f:"871.html",n:871,s:"",t:"Gamble With Your Friends",c:"covers/871.jpg"},
-  {f:"872.html",n:872,s:"",t:"The One Fish",c:"covers/872.jpg"},
-  {f:"873.html",n:873,s:"",t:"Chain Chillas",c:"covers/873.jpg"},
-  {f:"874.html",n:874,s:"",t:"Ugs",c:"covers/874.jpg"},
-  {f:"875-f3.html",n:875,s:"f3",t:"Roam 0120",c:"covers/875.jpg"},
-  {f:"876.html",n:876,s:"",t:"Sugary Spire Pizzano",c:"covers/876.jpg"},
-  {f:"877.html",n:877,s:"",t:"Pet The Cat",c:"covers/877.jpg"},
-  {f:"878-f.html",n:878,s:"f",t:"Garten Of Banban",c:"covers/878.jpg"},
-  {f:"879.html",n:879,s:"",t:"The Joy Of Creation Story Mode",c:"covers/879.jpg"},
-  {f:"880.html",n:880,s:"",t:"Castlecrashers",c:"covers/880.jpg"},
-  {f:"881.html",n:881,s:"",t:"Feed and Grow: Fish",c:"covers/881.jpg"},
-  {f:"882.html",n:882,s:"",t:"Mcsmw",c:"covers/882.jpg"},
-  {f:"mygames/anchorsworld/index.html",n:null,s:"",t:"Anchors World",c:null,e:"\uD83C\uDF0D",o:1},
-  {f:"mygames/fort/index.html",n:null,s:"",t:"Fort",c:null,e:"\uD83C\uDFF0",o:1},
-  {f:"mygames/ironknights/index.html",n:null,s:"",t:"Iron Knights",c:null,e:"\u2694\uFE0F",o:1},
-  {f:"mygames/mobilegame/index.html",n:null,s:"",t:"Mobilegame",c:null,e:"\uD83D\uDCF1",o:1},
-  {f:"mygames/musspel/index.html",n:null,s:"",t:"Mouse Quest Ultimate",c:null,e:"\uD83D\uDC2D",o:1}
-];
-
-/* stable numeric order, used for prev/next navigation */
-const NAV = GAMES.slice().sort((a,b)=> a.n-b.n || a.f.localeCompare(b.f,undefined,{numeric:true}));
-const byFile = new Map(GAMES.map(g=>[g.f,g]));
-
-/* ============================== STORAGE ============================== */
-const store = {
-  get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
-  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
-};
-let favs   = new Set(store.get("gn_favs", []));
-let recent = store.get("gn_recent", []).filter(f=>byFile.has(f));
-
-/* ============================== SETTINGS ============================== */
-/* accepts true/false, "true", 1 and friends (store.set JSON-encodes booleans) */
-const asBool=v=>v===true||v===1||v==="true"||v==="1";
-const DEFAULT_WISP = (typeof WISP_URL==="string" && WISP_URL) ? WISP_URL : "wss://anura.pro/wisp/";
-const settings={
-  theme:   store.get("gn_theme","red"),
-  cards:   store.get("gn_cards","m"),
-  anim:    store.get("gn_anim",true),
-  minimal: asBool(store.get("gn_minimal",false)),
-  landing: store.get("gn_landing","home"),
-  wisp:    store.get("aa_wisp",""),
-};
-/* "red" = Cherry Cola (default), "purple" = Blueberry Soda; anything else falls back to the default */
-if(!["purple","red"].includes(settings.theme)) settings.theme="red";
-if(!["s","m","l"].includes(settings.cards)) settings.cards="m";
-if(!["home","library"].includes(settings.landing)) settings.landing="home";
-
-/* effective wisp server: user override or built-in */
-function effWisp(){ const w=(settings.wisp||"").trim(); return w||DEFAULT_WISP; }
-let activeWisp=effWisp();
-
-function applySettings(){
-  document.body.dataset.theme=settings.theme;
-  document.body.dataset.cards=settings.cards;
-  document.body.classList.toggle("no-anim",!settings.anim);
-  applyMinimal();
-}
-
-/* Minimal mode: html.minimal does the CSS slimming; here the JS side (no bubbles, no pop listener, fonts, Jarvis) */
-let minimalApplied=null;
-function applyMinimal(){
-  const on=!!settings.minimal;
-  document.documentElement.classList.toggle("minimal",on);
-  document.body.classList.toggle("minimal",on);
-  if(on===minimalApplied) return;
-  const first=minimalApplied===null;
-  minimalApplied=on;
-  if(on){ clearFizz(); }
-  else { buildFizz(); if(typeof window.gnFonts==="function") window.gnFonts(); }
-  syncPops();
-  if(!first) notifyJarvis();
-}
-function notifyJarvis(){
-  const af=document.getElementById("aiFrame");
-  if(!af||!af.getAttribute("src")||!af.contentWindow) return;
-  let o="*"; try{ if(location.origin&&location.origin!=="null") o=location.origin; }catch(e){}
-  try{ af.contentWindow.postMessage({type:"gn_minimal",on:!!settings.minimal},o); }catch(e){}
-}
-
-/* ============================== STATE ============================== */
-let sort = store.get("gn_sort", "new");
-let favsOnly = false;
-let query = "";
-if(!["new","old","az","za","rnd"].includes(sort)) sort = "new";
-
-const $ = id => document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const grid=$("grid"), searchBox=$("search"), frame=$("frame");
-
-const EMOJI=["\uD83C\uDFAE","\uD83D\uDC7E","\uD83D\uDD79\uFE0F","\uD83C\uDFB2","\uD83D\uDE80","\u2B50","\uD83D\uDD25","\uD83C\uDFAF","\uD83C\uDFC6","\u26A1","\uD83E\uDDE9","\u2693"];
-const emojiFor=n=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return EMOJI[h%EMOJI.length];};
-
-/* ============================== CARD FACTORY ============================== */
-const io = new IntersectionObserver(es=>{
-  for(const e of es) if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
-},{rootMargin:"200px"});
-
-function makeCard(g){
-  const el=document.createElement("div");
-  el.className="game"+(g.o?" own":"");
-  el.dataset.f=g.f;
-  const label=g.o?esc(g.t):(g.t?esc(g.t):"#"+g.n);
-  const chip=g.o?"":(g.t?"#"+g.n+(g.s?"&#183;"+esc(g.s):""):(g.s?esc(g.s):""));
-  el.title=(g.o?esc(g.t):(g.t?g.t+" \u00B7 #"+g.n:"#"+g.n+(g.s?" \u00B7 "+g.s:"")))+"\u2014 click to play";
-  el.innerHTML =
-    '<div class="thumb">'+
-      (g.c?'<img loading="lazy" decoding="async" src="'+g.c+'" alt="">':'')+
-      '<div class="fallback"><span class="fe">'+(g.e||emojiFor(g.f))+'</span><span class="fn">'+label+'</span></div>'+
-      (g.o?'<span class="own-badge">&#127968;</span>':'')+
-      '<div class="play"><span>\u25B6 Play</span></div>'+
-    '</div>'+
-    '<div class="meta"><span class="num">'+label+'</span>'+
-      (chip?'<span class="suffix">'+chip+'</span>':'')+
-    '</div>'+
-    '<button class="favbtn'+(favs.has(g.f)?" on":"")+'" title="Toggle favorite" aria-label="Toggle favorite">\u2665</button>';
-
-  const img=el.querySelector("img");
-  if(img){
-    const th=el.querySelector(".thumb");
-    th.classList.add("ld");
-    img.addEventListener("load", ()=>{ img.classList.add("ok"); th.classList.remove("ld"); });
-    img.addEventListener("error", ()=>{ img.remove(); th.classList.remove("ld"); });
-  }
-  el.addEventListener("click", ()=>openGame(g.f));
-  el.querySelector(".favbtn").addEventListener("click", e=>{ e.stopPropagation(); toggleFav(g.f); });
-  io.observe(el);
-  return el;
-}
-
-/* one card node per game, reused across renders */
-const cardCache=new Map();
-for(const g of GAMES) cardCache.set(g.f, makeCard(g));
-
-/* ============================== RENDERING ============================== */
-const CMP={
-  new:(a,b)=> b.n-a.n || a.f.localeCompare(b.f,undefined,{numeric:true}),
-  old:(a,b)=> a.n-b.n || a.f.localeCompare(b.f,undefined,{numeric:true}),
-  az: (a,b)=> (a.t||a.f).localeCompare(b.t||b.f,undefined,{numeric:true}),
-  za: (a,b)=> (b.t||b.f).localeCompare(a.t||a.f,undefined,{numeric:true}),
-  rnd:(a,b)=> a.r-b.r
-};
-
-function renderGrid(){
-  renderOwn();
-  let list=GAMES.filter(g=>!g.o);
-  if(favsOnly) list=list.filter(g=>favs.has(g.f));
-  const q=query.trim().toLowerCase();
-  if(q) list=list.filter(g=> g.f.toLowerCase().includes(q) || String(g.n).includes(q.replace(/^#/,"")) || g.s.toLowerCase().includes(q) || (g.t&&g.t.toLowerCase().includes(q)));
-  return buildGrid(list);
-}
-
-function buildGrid(list){
-  const frag=document.createDocumentFragment();
-  for(const g of list) frag.appendChild(cardCache.get(g.f));
-  grid.replaceChildren(frag);
-  $("allCount").textContent=list.length;
-  const empty=$("empty");
-  if(list.length===0){
-    empty.style.display="block";
-    empty.innerHTML = favsOnly
-      ? "No favorites yet.<br>Tap the <b>\u2665</b> on any game to keep it on ice."
-      : "No bubbles for <b>"+query.replace(/[<>&]/g,"")+"</b>.<br>Try a number like <b>842</b> or a name like <b>pizza</b>.";
-  }else empty.style.display="none";
-}
-
-/* home-made games live in their own row at the top of the library */
-function renderOwn(){
-  const sec=$("ownSec"), row=$("ownRow");
-  let list=GAMES.filter(g=>g.o);
-  if(favsOnly) list=list.filter(g=>favs.has(g.f));
-  const q=query.trim().toLowerCase();
-  if(q) list=list.filter(g=> g.f.toLowerCase().includes(q) || (g.t&&g.t.toLowerCase().includes(q)));
-  sec.hidden=list.length===0;
-  for(const el of row.childNodes) io.unobserve(el);
-  const frag=document.createDocumentFragment();
-  for(const g of list) frag.appendChild(makeCard(g));
-  row.replaceChildren(frag);
-}
-
-function renderRecent(){
-  const sec=$("recentSec"), row=$("recentRow");
-  if(recent.length===0){ sec.hidden=true; return; }
-  sec.hidden=false;
-  const frag=document.createDocumentFragment();
-  for(const f of recent){ const g=byFile.get(f); if(g) frag.appendChild(makeCard(g)); }
-  row.replaceChildren(frag);
-}
-
-function renderFeatured(){
-  const list=GAMES.filter(g=>g.o);
-  const row=$("featRow");
-  for(const el of row.childNodes) io.unobserve(el);
-  const frag=document.createDocumentFragment();
-  for(const g of list) frag.appendChild(makeCard(g));
-  row.replaceChildren(frag);
-  $("featSec").hidden=list.length===0;
-}
-
-function renderFavCount(){
-  $("favCount").textContent=favs.size;
-  $("statFavs").textContent=favs.size;
-}
-
-/* ============================== FAVORITES / RECENT ============================== */
-function toggleFav(f){
-  if(favs.has(f)){ favs.delete(f); toast("Removed from favorites"); }
-  else{ favs.add(f); toast("Added to favorites \u2665"); }
-  store.set("gn_favs",[...favs]);
-  renderFavCount();
-  document.querySelectorAll('.game[data-f]').forEach(el=>{
-    if(el.dataset.f!==f) return;
-    const b=el.querySelector(".favbtn");
-    if(b) b.classList.toggle("on", favs.has(f));
-  });
-  if($("player").classList.contains("active")) syncPlayerFavBtn();
-  if(favsOnly) renderGrid();
-}
-
-function addRecent(f){
-  recent=[f, ...recent.filter(x=>x!==f)].slice(0,12);
-  store.set("gn_recent",recent);
-  renderRecent();
-}
-
-$("clearRecent").addEventListener("click",()=>{ recent=[]; store.set("gn_recent",recent); renderRecent(); });
-
-/* ============================== VIEWS / ROUTING ============================== */
-/* proxied iframe tabs: one row per tab (view id "view-"+key, nav button data-nav=key, route #key,
-   containers #ptMount-key / #ptLoad-key). Frames are created lazily through the Scramjet proxy. */
-const PROXY_TABS={
-  movies:{url:"https://redflix.st",label:"Movies"},
-  music:{url:"https://www.dusktune.com",label:"Music"}
-};
-const isProxyTab=k=>Object.prototype.hasOwnProperty.call(PROXY_TABS,k);
-const isFrameView=v=>v==="ai"||isProxyTab(v);
-
-function showView(v){
-  document.body.dataset.view=v;
-  if(isFrameView(v)) document.body.dataset.fv="1"; else delete document.body.dataset.fv;
-  for(const el of document.querySelectorAll(".view")) el.classList.toggle("active", el.id==="view-"+v);
-  for(const b of document.querySelectorAll(".navlink")) b.classList.toggle("active", b.dataset.nav===v);
-  if(v==="library") renderGrid();
-  if(v==="ai"){
-    const af=$("aiFrame");
-    if(!af.getAttribute("src")) af.src="jarvis.html"; /* lazy-load Jarvis on first visit */
-  }
-  if(isProxyTab(v)) ensureProxyTab(v);
-  if(isFrameView(v)) sizeFrameView();
-}
-
-/* keep every iframe view (AI, Movies, Music) exactly as tall as the space under the (wrapping) header */
-function sizeFrameView(){ document.documentElement.style.setProperty("--topH", $("topbar").offsetHeight+"px"); }
-window.addEventListener("resize",()=>{ if(document.body.dataset.fv) sizeFrameView(); });
-if(typeof ResizeObserver==="function") new ResizeObserver(()=>{ if(document.body.dataset.fv) sizeFrameView(); }).observe($("topbar"));
-
-/* route(initial): the landing-page setting only applies to the very first load */
-function route(initial){
-  const m=location.hash.match(/^#p=(.+)$/);
-  const f=m?decodeURIComponent(m[1]):null;
-  let v;
-  if(f||location.hash==="#library") v="library";
-  else if(isFrameView(location.hash.slice(1))) v=location.hash.slice(1);
-  else if(initial) v=settings.landing==="library" ? "library" : "home";
-  else v="home";
-  showView(v);
-  if(f&&byFile.has(f)) showPlayer(byFile.get(f));
-  else closePlayer();
-}
-window.addEventListener("hashchange",()=>route(false));
-
-function goHome(){
-  hideBrowse();
-  if(location.hash===""||location.hash==="#") showView("home");
-  else location.hash="";
-}
-
-document.querySelectorAll(".navlink").forEach(b=>b.addEventListener("click",()=>{
-  if(b.dataset.nav==="library") location.hash="#library";
-  else if(isFrameView(b.dataset.nav)) location.hash="#"+b.dataset.nav;
-  else goHome();
-}));
-$("brandHome").addEventListener("click",goHome);
-$("enterLib").addEventListener("click",()=>{ location.hash="#library"; });
-
-/* ============================== GAME PLAYER ============================== */
-let current=null;
-
-function openGame(f){ location.hash="p="+f; }
-
-/* fizz + pops are paused/hidden (CSS body.ovl) while a game or the browser overlay is open */
-function syncOvl(){
-  document.body.classList.toggle("ovl", $("player").classList.contains("active") || $("browse").classList.contains("active"));
-}
-
-function showPlayer(g){
-  current=g;
-  if(g.o&&isFile()){
-    /* Unity/ES-module builds cannot fetch their files over file:// - show a friendly hint instead of a Unity error */
-    frame.removeAttribute("src");
-    frame.srcdoc='<!DOCTYPE html><html><head><meta charset="utf-8"><style>'
-      +'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;'
-      +'background:radial-gradient(700px 400px at 50% 0,rgba(225,29,46,.28),transparent 70%),#0a0507;color:#fff4ee;font-family:system-ui,\u0022Segoe UI\u0022,sans-serif;text-align:center;padding:20px;box-sizing:border-box}'
-      +'.card{max-width:540px;padding:34px 38px;background:#1c0d12;border:2.5px solid #e11d2e;border-radius:30px;'
-      +'box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(255,59,78,.25)}'
-      +'h2{margin:2px 0 10px;font-size:1.3rem}p{margin:9px 0;color:#c4a3a5;line-height:1.55;font-size:.95rem}'
-      +'code{background:#2b1219;padding:2px 9px;border-radius:999px;color:#ff8f9b;font-size:.92em}'
-      +'.big{font-size:3.2rem}.btn{display:inline-block;margin-top:14px;padding:10px 22px;border-radius:999px;'
-      +'background:linear-gradient(180deg,#f0283a,#b30f1e);box-shadow:inset 0 1px 0 rgba(255,255,255,.5);color:#fff;font-weight:700;text-decoration:none}code.wide{display:inline-block;margin-top:6px}'
-      +'</style></head><body>'
-      +'<div class="card"><div class="big">\uD83C\uDFE0</div>'
-      +'<h2>'+esc(g.t||"This game")+' needs the local server</h2>'
-      +'<p>Home-made games cannot run while the arcade is opened by double-clicking its file<br>(browsers block game files on <code>file://</code> pages).</p>'
-      +'<p>Double-click <code>Start Julmust Arcade.bat</code> in the arcade folder,<br>then open <code class="wide">http://localhost:8765/</code></p>'
-      +'<a class="btn" href="http://localhost:8765/">\uD83D\uDD17 Open localhost:8765</a>'
-      +'<p style="margin-top:14px;font-size:.85rem">(the other 800+ games work fine right where you are)</p>'
-      +'</div></body></html>';
-  }else{
-    frame.removeAttribute("srcdoc");
-    frame.src=g.f;
-  }
-  const chip=g.o?"":(g.t?"#"+g.n+(g.s?"&#183;"+esc(g.s):""):(g.s?esc(g.s):""));
-  $("pTitle").innerHTML=(g.o?esc(g.t):(g.t?esc(g.t):"#"+g.n))+(chip?'<span class="suffix">'+chip+"</span>":(g.o?'<span class="suffix own">&#127968; home-made</span>':""));
-  $("newTabBtn").href=g.f;
-  syncPlayerFavBtn();
-  const i=NAV.indexOf(g);
-  $("prevBtn").disabled=i<=0;
-  $("nextBtn").disabled=i<0||i>=NAV.length-1;
-  $("player").classList.add("active");
-  syncOvl();
-  document.body.style.overflow="hidden";
-  document.title="\u25B6 "+(g.t||("#"+g.n))+" \u00B7 Julmust Arcade";
-  addRecent(g.f);
-}
-
-function closePlayer(){
-  current=null;
-  $("player").classList.remove("active");
-  syncOvl();
-  frame.removeAttribute("srcdoc");
-  frame.src="about:blank";
-  document.body.style.overflow="";
-  document.title="Julmust Arcade V67";
-}
-
-function syncPlayerFavBtn(){
-  const b=$("favBtn");
-  b.innerHTML=favs.has(current.f)?"\u2665":"\u2661";
-  b.classList.toggle("on", favs.has(current.f));
-}
-
-function step(d){
-  if(!current) return;
-  const i=NAV.indexOf(current), j=i+d;
-  if(j>=0&&j<NAV.length) location.hash="p="+NAV[j].f;
-}
-
-$("backBtn").addEventListener("click",()=>{ location.hash=""; });
-$("closeBtn").addEventListener("click",()=>{ location.hash=""; });
-$("prevBtn").addEventListener("click",()=>step(-1));
-$("nextBtn").addEventListener("click",()=>step(1));
-$("favBtn").addEventListener("click",()=>toggleFav(current.f));
-$("fsBtn").addEventListener("click",toggleFullscreen);
-$("copyBtn").addEventListener("click",()=>copyLink(current.f));
-
-function toggleFullscreen(){
-  if(document.fullscreenElement) document.exitFullscreen();
-  else if(frame.requestFullscreen) frame.requestFullscreen();
-}
-
-function copyLink(f){
-  const url=location.href.split("#")[0]+"#p="+f;
-  const done=()=>toast("Link copied to clipboard");
-  const fallback=()=>{
-    try{
-      const t=document.createElement("textarea");
-      t.value=url; t.style.position="fixed"; t.style.opacity="0";
-      document.body.appendChild(t); t.select();
-      document.execCommand("copy"); t.remove(); done();
-    }catch(e){ toast("Could not copy link"); }
-  };
-  if(navigator.clipboard&&navigator.clipboard.writeText)
-    navigator.clipboard.writeText(url).then(done).catch(fallback);
-  else fallback();
-}
-
-/* ============================== PROXY (Scramjet + wisp) ============================== */
-let sj=null, sjConn=null, sjBootPromise=null, sjFrameMod=null;
-let browsePrevView="home", browseCurrent="";
-
-const abs=p=>new URL(p,location.href).toString();
-const setStatus=t=>{ $("pStatus").textContent=t||""; };
-const setProg=p=>{ $("pBarTrack").classList.toggle("on",p>0); $("pBar").style.width=p+"%"; };
-function proxyError(msg, err){
-  $("pError").textContent=msg||"";
-  if(err) console.error(err);
-  setStatus(""); setProg(0);
-}
-const isFile=()=>location.protocol==="file:";
-
-/* search engine preference (shared with Settings) */
-const engineSel=$("pEngine");
-try{
-  const saved=localStorage.getItem("aa_engine");
-  if(saved && [...engineSel.options].some(o=>o.value===saved)) engineSel.value=saved;
-  engineSel.addEventListener("change",()=>localStorage.setItem("aa_engine",engineSel.value));
-}catch(e){}
-
-async function waitForWisp(url,maxMs){
-  const start=Date.now(); let tries=0;
-  while(Date.now()-start<maxMs){
-    tries++;
-    const ok=await new Promise(resolve=>{
-      let ws, done=false;
-      const finish=v=>{ if(!done){ done=true; try{ws.close();}catch(e){} resolve(v); } };
-      try{ ws=new WebSocket(url); }catch(e){ return resolve(false); }
-      ws.onopen=()=>finish(true);
-      ws.onerror=()=>finish(false);
-      ws.onclose=()=>finish(false);
-      setTimeout(()=>finish(false),8000);
-    });
-    if(ok) return true;
-    setStatus("Waking up the server\u2026 (attempt "+tries+")");
-    setProg(Math.min(35+tries*4,70));
-    await new Promise(r=>setTimeout(r,3000));
-  }
-  return false;
-}
-
-async function ensureProxy(){
-  if(sjBootPromise) return sjBootPromise;
-  sjBootPromise=(async()=>{
-    if(isFile()) throw new Error("The proxy needs the site to be hosted (https) or run from a local web server. Double-click \u201CStart Julmust Arcade.bat\u201D to get both \u2014 games work offline either way.");
-    if(!navigator.serviceWorker) throw new Error("This browser does not support service workers (required by the proxy).");
-    setStatus("Loading proxy core\u2026"); setProg(15);
-    if(!sj){
-      const { ScramjetController }=$scramjetLoadController();
-      sj=new ScramjetController({files:{
-        wasm:abs("scram/engine.txt"),
-        all:abs("scram/scramjet.all.js"),
-        sync:abs("scram/scramjet.sync.js"),
-      }});
-    }
-    try{ await sj.init(); }
-    catch(e){
-      setStatus("Repairing proxy data\u2026");
-      try{ for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); }catch(_){}
-      await new Promise(res=>{ const rq=indexedDB.deleteDatabase("$scramjet"); rq.onsuccess=rq.onerror=rq.onblocked=()=>res(); setTimeout(res,3000); });
-      await sj.init();
-    }
-    setProg(35); setStatus("Registering service worker\u2026");
-    await registerSW();
-    await navigator.serviceWorker.ready;
-    setProg(55); setStatus("Connecting to the server\u2026");
-    const w=effWisp();
-    if(!w) throw new Error("No wisp server configured \u2014 set one in Settings \u2699.");
-    if(!(await waitForWisp(w,45000)))
-      throw new Error("Could not reach the proxy server. It may be asleep or offline \u2014 try again in a minute.");
-    setProg(80); setStatus("Setting up transport\u2026");
-    sjConn=sjConn||new BareMux.BareMuxConnection(abs("baremux/worker.js"));
-    const cur=await sjConn.getTransport();
-    const transportOk = cur===abs("libcurl/index.mjs") || String(cur).startsWith("blob:");
-    if(!transportOk || activeWisp!==w){
-      try{ await sjConn.setTransport(abs("libcurl/index.mjs"),[{websocket:w}]); }
-      catch(err){
-        const src=await (await fetch(abs("libcurl/index.mjs"))).text();
-        if(!src.includes("LibcurlClient")) throw err;
-        await sjConn.setTransport(URL.createObjectURL(new Blob([src],{type:"text/javascript"})),[{websocket:w}]);
-      }
-      activeWisp=w;
-    }
-    setProg(100); setStatus("");
-    setTimeout(()=>setProg(0),400);
-    return sj;
-  })().catch(e=>{ sjBootPromise=null; setProg(0); setStatus(""); throw e; });
-  return sjBootPromise;
-}
-
-/* shared: create a proxied frame (ensureProxy() must have resolved) and mount it into any container */
-function mountProxyFrame(container, allow){
-  const mod=sj.createFrame();
-  if(allow){ mod.frame.setAttribute("allow",allow); mod.frame.setAttribute("allowfullscreen",""); }
-  container.appendChild(mod.frame);
-  return mod;
-}
-
-function ensureBrowseFrame(){
-  if(sjFrameMod) return sjFrameMod;
-  sjFrameMod=mountProxyFrame($("bFrameWrap"));
-  sjFrameMod.frame.id="sjFrame";
-  try{
-    sjFrameMod.addEventListener("urlchange",e=>{ $("bAddr").value=String(e.url); browseCurrent=String(e.url); });
-  }catch(e){}
-  return sjFrameMod;
-}
-
-function showBrowse(url){
-  closePlayer();
-  browseCurrent=url;
-  document.body.style.overflow="hidden";
-  $("browse").classList.add("active");
-  syncOvl();
-  $("bAddr").value=url;
-  const mod=ensureBrowseFrame();
-  mod.frame.style.display="";
-  try{ mod.go(url); }catch(e){}
-}
-
-function hideBrowse(){
-  $("browse").classList.remove("active");
-  syncOvl();
-  if(sjFrameMod) sjFrameMod.frame.style.display="none";
-  document.body.style.overflow="";
-}
-
-/* ---- proxied tabs (Movies, Music): lazy, created once, kept alive while hidden ---- */
-const PROXY_ALLOW="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write";
-const PT_BOOT_MS=75000, PT_LOAD_MS=25000;
-const ptState={};
-for(const k in PROXY_TABS) ptState[k]={mod:null, busy:false};
-
-function withTimeout(p, ms, msg){
-  let t;
-  return Promise.race([p, new Promise((_,rej)=>{ t=setTimeout(()=>rej(new Error(msg)),ms); })]).finally(()=>clearTimeout(t));
-}
-const errText=e=>(e&&e.message)||"The proxy failed to start.";
-
-/* mode: loading | done | error | file - drives the soda loader / error panel of a tab */
-function ptShow(k, mode, msg){
-  const el=$("ptLoad-"+k), label=PROXY_TABS[k].label;
-  el.classList.remove("done","err");
-  if(mode==="done"){ el.classList.add("done"); return; }
-  if(mode==="loading"){ el.innerHTML='<div class="aibub"></div><div>Pouring '+esc(label)+"\u2026</div>"; return; }
-  el.classList.add("err");
-  if(mode==="file"){
-    el.innerHTML='<div class="ptbig">\uD83C\uDFE0</div><h2>'+esc(label)+' needs the local server</h2>'
-      +'<p>The proxy cannot run while the arcade is opened by double-clicking its file<br>(browsers block it on <code>file://</code> pages).</p>'
-      +'<p>Double-click <code>Start Julmust Arcade.bat</code> in the arcade folder,<br>then open <code>http://localhost:8765/</code></p>'
-      +'<div class="ptbtns"><a class="cta red" href="http://localhost:8765/">\uD83D\uDD17 Open localhost:8765</a></div>';
-    return;
-  }
-  el.innerHTML='<div class="ptbig">\u26A0\uFE0F</div><h2>'+esc(label)+" could not be loaded</h2><p>"+esc(msg||"The proxy failed to start.")+"</p>"
-    +'<div class="ptbtns"><button class="cta red" type="button" data-act="retry">Retry</button>'
-    +'<button class="cta" type="button" data-act="browse">Open in proxy browser</button></div>';
-}
-
-async function ensureProxyTab(k){
-  const st=ptState[k], cfg=PROXY_TABS[k];
-  if(st.mod||st.busy) return;
-  if(isFile()){ ptShow(k,"file"); return; }
-  st.busy=true; ptShow(k,"loading");
-  let mod=null;
-  try{
-    await withTimeout(ensureProxy(),PT_BOOT_MS,"The proxy took too long to start. The proxy server may be asleep or unreachable \u2014 try again in a minute.");
-    mod=mountProxyFrame($("ptMount-"+k),PROXY_ALLOW);
-    const fr=mod.frame;
-    fr.title=cfg.label;
-    fr.addEventListener("load",()=>{
-      try{ if(fr.contentWindow.location.href==="about:blank") return; }catch(e){}
-      ptShow(k,"done");
-    });
-    mod.go(cfg.url);
-    st.mod=mod;
-    setTimeout(()=>ptShow(k,"done"),PT_LOAD_MS); /* never keep the loader over a page that is already visible */
-  }catch(err){
-    if(mod&&!st.mod) mod.frame.remove();
-    ptShow(k,"error",errText(err));
-    console.error(err);
-  }finally{
-    st.busy=false;
-  }
-}
-
-async function openTabInBrowser(k){
-  try{
-    await withTimeout(ensureProxy(),PT_BOOT_MS,"The proxy took too long to start.");
-    browsePrevView=k;
-    showBrowse(PROXY_TABS[k].url);
-  }catch(err){
-    ptShow(k,"error",errText(err));
-    toast("Proxy still unavailable");
-  }
-}
-
-document.querySelectorAll(".aiload[data-pt]").forEach(el=>el.addEventListener("click",e=>{
-  const btn=e.target.closest("button[data-act]");
-  if(!btn) return;
-  if(btn.dataset.act==="retry") ensureProxyTab(el.dataset.pt);
-  else if(btn.dataset.act==="browse") openTabInBrowser(el.dataset.pt);
-}));
-
-async function browseTo(input){
-  const q=(input||"").trim();
-  if(!q) return;
-  $("pError").textContent="";
-  const btn=$("pGo"); btn.disabled=true;
-  try{
-    setStatus("Booting proxy\u2026"); setProg(8);
-    await ensureProxy();
-    setStatus(""); setProg(0);
-    browsePrevView=document.body.dataset.view==="library"?"library":"home";
-    showBrowse(search(q,engineSel.value));
-    toast("Proxy connected \u2693");
-  }catch(err){
-    proxyError(err.message||"The proxy failed to start.", err);
-  }finally{
-    btn.disabled=false;
-  }
-}
-
-$("pForm").addEventListener("submit",e=>{ e.preventDefault(); browseTo($("pInput").value); });
-document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>browseTo(c.dataset.url)));
-
-$("bBack").addEventListener("click",()=>{ try{ sjFrameMod.back(); }catch(e){} });
-$("bFwd").addEventListener("click",()=>{ try{ sjFrameMod.forward(); }catch(e){} });
-$("bReload").addEventListener("click",()=>{ try{ sjFrameMod.reload(); }catch(e){} });
-$("bHome").addEventListener("click",()=>{ hideBrowse(); goHome(); });
-$("bExit").addEventListener("click",()=>{ hideBrowse(); showView(browsePrevView); });
-$("bNew").addEventListener("click",()=>{ if(browseCurrent) window.open(browseCurrent,"_blank"); });
-$("bFs").addEventListener("click",()=>{
-  const el=$("browse");
-  if(document.fullscreenElement) document.exitFullscreen();
-  else if(el.requestFullscreen) el.requestFullscreen();
-});
-$("bForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  const q=$("bAddr").value.trim();
-  if(q&&sjFrameMod){ try{ sjFrameMod.go(search(q,engineSel.value)); }catch(err){} }
-});
-
-/* ============================== SETTINGS UI ============================== */
-const settingsModal=$("settingsModal");
-
-function openSettings(){
-  settingsModal.classList.add("active");
-  syncSettingsUI();
-  document.body.style.overflow="hidden";
-}
-function closeSettings(){
-  settingsModal.classList.remove("active");
-  document.body.style.overflow="";
-}
-function syncSettingsUI(){
-  document.querySelectorAll(".swatch").forEach(b=>b.classList.toggle("on",b.dataset.t===settings.theme));
-  $("sCards").value=settings.cards;
-  $("sAnim").classList.toggle("on",!!settings.anim);
-  $("sMinimal").classList.toggle("on",!!settings.minimal);
-  $("sMinimal").setAttribute("aria-checked",settings.minimal?"true":"false");
-  $("sLanding").value=settings.landing;
-  $("sEngine").value=engineSel.value;
-  $("wispInput").value=settings.wisp;
-  $("wispNow").textContent="In use: "+effWisp();
-  const out=$("wispTestOut");
-  out.textContent=""; out.className="wout";
-}
-
-$("settingsBtn").addEventListener("click",openSettings);
-$("sClose").addEventListener("click",closeSettings);
-settingsModal.querySelector(".sback").addEventListener("click",closeSettings);
-
-document.querySelectorAll(".swatch").forEach(b=>b.addEventListener("click",()=>{
-  settings.theme=b.dataset.t;
-  store.set("gn_theme",settings.theme);
-  applySettings(); syncSettingsUI();
-  toast("Theme: "+(settings.theme==="red"?"Cherry Cola":"Blueberry Soda"));
-}));
-
-$("sCards").addEventListener("change",e=>{
-  settings.cards=e.target.value;
-  store.set("gn_cards",settings.cards);
-  applySettings();
-});
-
-$("sAnim").addEventListener("click",()=>{
-  settings.anim=!settings.anim;
-  store.set("gn_anim",settings.anim);
-  applySettings(); syncSettingsUI();
-});
-
-$("sMinimal").addEventListener("click",()=>{
-  settings.minimal=!settings.minimal;
-  store.set("gn_minimal",settings.minimal);
-  applySettings(); syncSettingsUI();
-  toast(settings.minimal?"Minimal mode on - lighter and faster":"Minimal mode off");
-});
-
-$("sLanding").addEventListener("change",e=>{
-  settings.landing=e.target.value;
-  store.set("gn_landing",settings.landing);
-  toast("Starts on "+(settings.landing==="library"?"the Library":"Home")+" next visit");
-});
-
-/* engine: sync home select + storage */
-$("sEngine").addEventListener("change",e=>{
-  localStorage.setItem("aa_engine",e.target.value);
-  engineSel.value=e.target.value;
-});
-
-/* wisp server override */
-$("wispInput").addEventListener("change",e=>{
-  settings.wisp=e.target.value.trim();
-  store.set("aa_wisp",settings.wisp);
-  $("wispNow").textContent="In use: "+effWisp();
-  toast(settings.wisp ? "Custom server saved \u2014 applies on next browse" : "Using the built-in server");
-});
-
-$("wispTest").addEventListener("click",async()=>{
-  const url=$("wispInput").value.trim();
-  const out=$("wispTestOut");
-  if(!url){
-    out.textContent="Enter a server URL first \u2014 or clear the field to use the built-in one.";
-    out.className="wout";
-    return;
-  }
-  out.textContent="Testing\u2026"; out.className="wout";
-  const ok=await new Promise(res=>{
-    let ws, done=false;
-    const fin=v=>{ if(!done){ done=true; try{ws.close();}catch(e){} res(v); } };
-    try{ ws=new WebSocket(url); }catch(e){ return res(false); }
-    ws.onopen=()=>fin(true);
-    ws.onerror=()=>fin(false);
-    ws.onclose=()=>fin(false);
-    setTimeout(()=>fin(false),6000);
-  });
-  out.textContent = ok ? "\u2713 Connected \u2014 server is awake" : "\u2717 Could not connect within 6s";
-  out.className="wout "+(ok?"good":"bad");
-});
-
-/* data management */
-$("sClearRecent").addEventListener("click",()=>{
-  recent=[]; store.set("gn_recent",recent); renderRecent();
-  toast("Recently played cleared");
-});
-
-$("sClearFavs").addEventListener("click",()=>{
-  if(favs.size===0){ toast("No favorites to clear"); return; }
-  if(!confirm("Remove all favorites?")) return;
-  favs.clear(); store.set("gn_favs",[]);
-  renderFavCount(); renderGrid();
-  document.querySelectorAll(".favbtn.on").forEach(b=>b.classList.remove("on"));
-  toast("Favorites cleared");
-});
-
-$("sReset").addEventListener("click",()=>{
-  if(!confirm("Reset ALL site data?\n(theme, favorites, history, proxy settings \u2014 everything)")) return;
-  try{ localStorage.clear(); }catch(e){}
-  location.reload();
-});
-
-/* ============================== TOOLBAR ============================== */
-let raf=null;
-searchBox.addEventListener("input",()=>{
-  if(raf) cancelAnimationFrame(raf);
-  raf=requestAnimationFrame(()=>{ query=searchBox.value; renderGrid(); raf=null; });
-});
-
-const sortSel=$("sort");
-sortSel.value=sort;
-sortSel.addEventListener("change",()=>{
-  sort=sortSel.value; store.set("gn_sort",sort);
-  if(sort==="rnd") for(const g of GAMES) g.r=Math.random();
-  renderGrid();
-});
-if(sort==="rnd") for(const g of GAMES) g.r=Math.random();
-
-$("favToggle").addEventListener("click",()=>{
-  favsOnly=!favsOnly;
-  $("favToggle").classList.toggle("on",favsOnly);
-  renderGrid();
-});
-
-$("randomBtn").addEventListener("click",()=>{
-  openGame(NAV[Math.floor(Math.random()*NAV.length)].f);
-});
-
-/* ============================== MISC UI ============================== */
-let toastTimer=null;
-function toast(msg){
-  const t=$("toast");
-  t.textContent=msg; t.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove("show"),1700);
-}
-
-const toTop=$("toTop");
-addEventListener("scroll",()=>toTop.classList.toggle("show",scrollY>700),{passive:true});
-toTop.addEventListener("click",()=>scrollTo({top:0,behavior:"smooth"}));
-
-document.addEventListener("keydown",e=>{
-  if(settingsModal.classList.contains("active")){
-    if(e.key==="Escape") closeSettings();
-    return;
-  }
-  if($("browse").classList.contains("active")){
-    if(e.key==="Escape") hideBrowse();
-    return;
-  }
-  if($("player").classList.contains("active")){
-    if(e.key==="Escape") location.hash="";
-    else if(e.key==="ArrowLeft") step(-1);
-    else if(e.key==="ArrowRight") step(1);
-    else if(e.key==="f"||e.key==="F") toggleFullscreen();
-    return;
-  }
-  const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
-  if(!typing&&e.key==="/"){
-    e.preventDefault();
-    if(location.hash!=="#library") history.pushState(null,"","#library"); /* keeps the back button working from any view */
-    showView("library"); searchBox.focus();
-  }
-});
-
-/* ============================== INIT ============================== */
-applySettings();
-$("tagline").textContent=GAMES.length+" games \u00B7 stay fizzy";
-$("heroCount").textContent=GAMES.length;
-$("statGames").textContent=GAMES.length;
-$("statCovers").textContent=[...cardCache.values()].filter(c=>c.querySelector("img")).length;
-$("footCount").textContent=GAMES.length;
-$("sCount").textContent=GAMES.length;
-renderFavCount();
-renderRecent();
-renderFeatured();
-renderOwn();
-
-/* AI view: hide the bubble loader once Jarvis has loaded */
-$("aiFrame").addEventListener("load",()=>{ if($("aiFrame").getAttribute("src")) $("aiLoad").classList.add("done"); });
-
-/* fizz: a small, fixed number of CSS-animated bubbles (no JS per frame); never created in minimal mode */
-function buildFizz(){
-  const layer=$("fizz");
-  if(settings.minimal||layer.childElementCount) return;
-  const n=innerWidth<700?9:16, r=(a,b)=>a+Math.random()*(b-a);
-  const frag=document.createDocumentFragment();
-  for(let i=0;i<n;i++){
-    const b=document.createElement("i");
-    b.style.cssText="--x:"+r(2,97).toFixed(1)+"%;--s:"+r(6,30).toFixed(0)+"px;--t:"+r(11,24).toFixed(1)+"s;--dl:-"+r(0,24).toFixed(1)+"s;--dx:"+r(-46,46).toFixed(0)+"px";
-    frag.appendChild(b);
-  }
-  layer.appendChild(frag);
-}
-function clearFizz(){ $("fizz").textContent=""; $("pops").textContent=""; }
-
-/* bubbles pop where you click (max ~30 nodes alive, skipped when animations are off); the listener only exists while minimal mode is off */
-const popMQ=window.matchMedia("(prefers-reduced-motion: reduce)");
-function popHandler(e){
-  const layer=$("pops");
-  if(settings.minimal || popMQ.matches || !settings.anim || document.body.classList.contains("ovl") || e.button>0) return;
-  if(layer.childElementCount>24) return;
-  const k=e.target.closest?e.target.closest("button,.game,.chip,.cta,.navlink,.tool"):null;
-  if(!k) return;
-  for(let i=0;i<5;i++){
-    const b=document.createElement("i"), a=Math.random()*Math.PI*2, d=16+Math.random()*30;
-    b.style.cssText="left:"+e.clientX+"px;top:"+e.clientY+"px;--s:"+(5+Math.random()*9).toFixed(0)+"px;--dx:"+(Math.cos(a)*d).toFixed(0)+"px;--dy:"+(Math.sin(a)*d-14).toFixed(0)+"px";
-    b.addEventListener("animationend",()=>b.remove());
-    layer.appendChild(b);
-  }
-}
-function syncPops(){
-  if(settings.minimal) document.removeEventListener("pointerdown",popHandler);
-  else document.addEventListener("pointerdown",popHandler,{passive:true});
-}
-
-/* wake the effective wisp server early so it is (mostly) awake when needed */
-try{
-  const w=effWisp();
-  if(w) fetch(w.replace("wss://","https://").replace(/\/wisp\/?$/,"/"),{mode:"no-cors"}).catch(()=>{});
-}catch(e){}
-
-route(true);
-if(isFile()) setStatus("\u26A0 Arcade opened via file:// \u2014 double-click \u201CStart Julmust Arcade.bat\u201D for the full experience (home-made Unity games need it).");
-</script>
+<script src="games.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
