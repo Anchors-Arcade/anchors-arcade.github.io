@@ -22,14 +22,14 @@
 window.Movies = (function () {
 
   /* ============================== CONFIG ============================== */
-  const API_KEY = "YOUR_TMDB_V3_API_KEY";
+  const API_KEY = "1cc02ad325e995507263ab6523eab061";
   const API = "https://api.themoviedb.org/3";
   const IMG = "https://image.tmdb.org/t/p";
   const LIST_TTL = 60 * 60e3;      // list endpoints cached 1 hour
   const DETAIL_TTL = 6 * 3600e3;   // movie details cached 6 hours
   const PAGE = 20;                 // TMDB page size
 
-  const keyOk = () => API_KEY && API_KEY !== "YOUR_TMDB_V3_API_KEY" && API_KEY.length >= 20;
+  const keyOk = () => API_KEY && API_KEY !== "1cc02ad325e995507263ab6523eab061" && API_KEY.length >= 20;
 
   /* ============================== HELPERS ============================== */
   const $ = id => document.getElementById(id);
