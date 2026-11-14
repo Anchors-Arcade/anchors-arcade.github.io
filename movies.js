@@ -29,7 +29,7 @@ window.Movies = (function () {
   const DETAIL_TTL = 6 * 3600e3;   // movie details cached 6 hours
   const PAGE = 20;                 // TMDB page size
 
-  const keyOk = () => API_KEY && API_KEY !== "1cc02ad325e995507263ab6523eab061" && API_KEY.length >= 20;
+  const keyOk = () => API_KEY && API_KEY !== "YOUR_TMDB_V3_API_KEY" && API_KEY.length >= 20;
 
   /* ============================== HELPERS ============================== */
   const $ = id => document.getElementById(id);
@@ -156,13 +156,15 @@ window.Movies = (function () {
     el.innerHTML =
       '<button type="button" class="mcard-link" title="' + esc(m.title || "Untitled") + ' — details">' +
         '<div class="mposter">' + posterHTML(m, 342) +
-          '<span class="mrating">' + esc(fmtRating(m.vote_average)) + "</span>" +
+          (m.vote_average ? '<span class="mrating">' + esc(fmtRating(m.vote_average)) + "</span>" : "") +
         "</div>" +
         '<div class="mmeta"><span class="mtitle">' + esc(m.title || "Untitled") + "</span>" +
         '<span class="msub">' + esc(cardSub(m)) + "</span></div>" +
       "</button>" +
       '<button type="button" class="mfav' + (isWatched(m.id) ? " on" : "") + '" title="Toggle watchlist" aria-label="Toggle watchlist">' + ICON_HEART + "</button>";
-    el.querySelector(".mcard-link").addEventListener("click", () => openDetail(m.id));
+    el.querySelector(".mcard-link").addEventListener("click", () => {
+      openDetail(m.id);
+    });
     el.querySelector(".mfav").addEventListener("click", e => { e.stopPropagation(); toggleWatch(slim(m)); });
     hookImgs(el);
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));  // fade-in reveal
