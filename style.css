@@ -394,6 +394,180 @@ body.ovl #toTop{display:none}
 }
 #toast.show{opacity:1; transform:translate(-50%,0)}
 
+/* ---------------- movies (TMDB discovery) ---------------- */
+:root{--mposter-w:170px}
+#view-movies{overflow-x:clip}
+.mwrap{max-width:1200px; margin:0 auto; padding:0 20px 60px}
+.mtoolbar{margin:24px 0 4px}
+
+/* setup panel (no API key yet) */
+#mSetup{max-width:600px; margin:48px auto 0; padding:30px 32px; background:var(--card); border:1px solid var(--line-2); border-radius:16px}
+#mSetup h2{margin-bottom:12px; font-size:1.25rem; font-weight:700; letter-spacing:-.025em}
+#mSetup p, #mSetup li{font-size:.92rem; line-height:1.7; color:var(--muted)}
+#mSetup ol{margin:12px 0 12px 22px; display:grid; gap:6px}
+#mSetup b{color:var(--text)}
+#mSetup a{color:var(--acc-hi); text-decoration:none}
+#mSetup a:hover{text-decoration:underline}
+#mSetup code{display:inline-block; margin:4px 0; padding:3px 10px; border-radius:7px; background:var(--panel); border:1px solid var(--line); color:var(--acc-hi); font-size:.88em}
+#mSetup .dim{margin-top:14px; font-size:.84rem; color:var(--faint)}
+#mSetup button{margin-top:16px}
+#mSetup .pt-ico, #mFatal .pt-ico{width:46px; height:46px; display:grid; place-items:center; margin:0 auto 12px; border-radius:50%; border:1px solid rgba(225,29,46,.5); background:var(--acc-soft); color:var(--acc-hi); font-size:1.2rem; font-weight:700}
+#mFatal{text-align:center; margin-top:60px}
+#mFatal h2{font-size:1.25rem; font-weight:700; letter-spacing:-.025em; color:var(--text)}
+#mFatal p{max-width:480px; margin:10px auto 0; line-height:1.6}
+
+/* cinematic hero */
+.mhero{
+  position:relative; isolation:isolate; margin-top:24px; height:min(46vh,440px); min-height:300px;
+  border-radius:16px; overflow:hidden; border:1px solid var(--line); background:var(--card);
+}
+.mhero-bg{position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; object-position:50% 20%; opacity:0; transition:opacity .5s ease}
+.mhero-bg.ok{opacity:1}
+.mhero-bg-fb{background:radial-gradient(closest-side at 50% 30%,rgba(225,29,46,.25),transparent),linear-gradient(160deg,#1c1c20,#101012); opacity:1}
+.mhero-shade{position:absolute; inset:0; z-index:1; background:linear-gradient(90deg,rgba(10,10,11,.94) 0,rgba(10,10,11,.6) 46%,rgba(10,10,11,.12)),linear-gradient(0deg,rgba(10,10,11,.85),transparent 55%)}
+.mhero-info{position:absolute; inset:auto 0 0 0; z-index:2; max-width:640px; padding:24px 28px; display:flex; flex-direction:column; gap:10px}
+.mhero-kicker{font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--acc-hi)}
+.mhero-info h2{font-size:clamp(1.6rem,3.4vw,2.4rem); font-weight:800; line-height:1.08; letter-spacing:-.035em; text-shadow:0 2px 18px rgba(0,0,0,.5)}
+.mhero-meta{font-size:.92rem; font-weight:500; color:#e4e4e7; text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.mhero-ov{font-size:.9rem; line-height:1.6; color:#d4d4d8; text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.mhero-btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px}
+
+/* movie cards */
+.mcard{position:relative; border-radius:12px; opacity:0; transition:opacity .25s ease, transform var(--t)}
+.mcard.in{opacity:1}
+.mcard:hover{transform:translateY(-3px)}
+.row .mcard{flex:0 0 var(--mposter-w); width:var(--mposter-w)}
+.mgrid{display:grid; gap:24px 16px; grid-template-columns:repeat(auto-fill,minmax(var(--mposter-w),1fr))}
+.mcard-link{display:block; width:100%; padding:0; background:none; border:0; text-align:left; color:inherit; cursor:pointer}
+.mposter{
+  position:relative; aspect-ratio:2/3; overflow:hidden; border-radius:12px;
+  background:linear-gradient(160deg,#1c1c20,#101012); border:1px solid var(--line);
+  transition:border-color var(--t), box-shadow var(--t);
+}
+.mcard:hover .mposter, .mcard:focus-within .mposter{border-color:var(--acc); box-shadow:0 14px 32px -12px var(--acc-glow)}
+.mposter img{position:absolute; inset:0; z-index:1; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .3s ease}
+.mposter img.ok{opacity:1}
+.mfb{position:absolute; inset:0; display:grid; place-items:center; padding:10px}
+.mfb span{font-size:2.6rem; font-weight:800; letter-spacing:-.04em; color:#3b3b42; text-transform:uppercase}
+.mrating{
+  position:absolute; bottom:8px; right:8px; z-index:2; padding:2px 7px; border-radius:7px;
+  background:rgba(10,10,11,.85); border:1px solid rgba(255,255,255,.14);
+  font-size:.72rem; font-weight:700; color:#fff; pointer-events:none;
+}
+.mrating::before{content:"★"; margin-right:4px; color:var(--acc-hi)}
+.mmeta{display:flex; flex-direction:column; gap:1px; padding:9px 2px 0; min-width:0}
+.mtitle{font-size:.88rem; font-weight:600; letter-spacing:-.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.msub{font-size:.74rem; color:var(--faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.msub:empty{display:none}
+.mfav{
+  position:absolute; top:8px; right:8px; z-index:3; width:32px; height:32px; display:grid; place-items:center;
+  border-radius:9px; border:1px solid rgba(255,255,255,.16); background:rgba(10,10,11,.72); color:#fff;
+  opacity:0; transition:opacity var(--t), color var(--t), border-color var(--t);
+}
+.mfav .ico{width:16px; height:16px}
+.mcard:hover .mfav, .mfav.on, .mfav:focus-visible{opacity:1}
+.mfav:hover{border-color:var(--acc)}
+.mfav.on{color:var(--acc-hi); border-color:rgba(225,29,46,.55)}
+.mfav.on .ico{fill:currentColor}
+
+/* skeleton loaders */
+.msk{position:relative; overflow:hidden; background:#17171a}
+.msk::after{
+  content:""; position:absolute; inset:0; transform:translateX(-100%);
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.06) 50%,transparent 80%);
+  animation:msheen 1.4s ease infinite;
+}
+@keyframes msheen{to{transform:translateX(100%)}}
+.msk-line{display:block; height:12px; border-radius:6px; margin-top:8px; width:90%}
+.msk-line.short{width:55%}
+.mrow-err{padding:18px 4px; font-size:.9rem; color:var(--muted); display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+
+/* empty / error states + load more */
+.mstate{max-width:460px; margin:48px auto; text-align:center; color:var(--muted); line-height:1.7}
+.mstate b{color:var(--text)}
+.mloadrow{display:flex; justify-content:center; margin-top:22px}
+.mloadrow .btn{min-width:160px}
+
+/* genre chips */
+.mchips{justify-content:flex-start; margin-top:4px}
+.chip.static{cursor:default; pointer-events:none; background:var(--card); border-color:var(--line-2); color:var(--text)}
+
+/* ---------------- movie details modal ---------------- */
+#mModal{position:fixed; inset:0; z-index:160; display:none; align-items:center; justify-content:center; padding:20px}
+#mModal.active{display:flex}
+.mback{position:absolute; inset:0; background:rgba(0,0,0,.78)}
+.mpanel-lg{
+  position:relative; width:min(880px,100%); max-height:min(90vh,900px); overflow-y:auto; overscroll-behavior:contain;
+  background:var(--panel); border:1px solid var(--line-2); border-radius:18px; box-shadow:0 30px 80px rgba(0,0,0,.65);
+}
+#mModalClose{
+  position:absolute; top:12px; right:12px; z-index:6; width:36px; height:36px; display:grid; place-items:center;
+  border:1px solid var(--line); border-radius:9px; background:rgba(10,10,11,.75); color:var(--text);
+  transition:background var(--t), color var(--t);
+}
+#mModalClose:hover{background:var(--card-2); color:var(--err)}
+.mhero-bd{position:relative; aspect-ratio:16/7; min-height:170px; overflow:hidden; background:linear-gradient(160deg,#1c1c20,#101012)}
+.mhero-bd img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .4s ease}
+.mhero-bd img.ok{opacity:1}
+.mhero-bd .mfb span{color:#4a4a52}
+.mdetail{padding:0 26px 26px}
+.mdhead{display:flex; gap:20px; margin-top:-52px; position:relative; z-index:2}
+.mdposter{flex:none; width:150px; box-shadow:0 10px 34px -10px rgba(0,0,0,.7)}
+.mdinfo{padding-top:60px; min-width:0}
+.mdinfo h2{font-size:1.5rem; font-weight:800; letter-spacing:-.03em; line-height:1.15}
+.mtag{margin-top:4px; font-size:.88rem; font-style:italic; color:var(--acc-hi)}
+.mmeta-line{margin-top:8px; font-size:.88rem; color:var(--muted)}
+.mchips-sm{margin-top:10px}
+.mdetail-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
+.mov{margin-top:18px; font-size:.94rem; line-height:1.7; color:#d4d4d8}
+.mov.dim{color:var(--faint)}
+.mdetail h3{margin:24px 0 10px; font-size:.72rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--faint)}
+.mtrailer{position:relative; margin-top:18px; aspect-ratio:16/9; max-width:640px; border:0; border-radius:12px; overflow:hidden; background:#000}
+.mtrailer iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+.mcast{display:flex; gap:14px; overflow-x:auto; padding:2px 2px 8px; scrollbar-width:thin}
+.mcastcard{flex:0 0 108px; width:108px; padding:0; background:none; border:0; color:inherit; text-align:left; cursor:default}
+.mcastimg{position:relative; display:block; aspect-ratio:1/1; overflow:hidden; border-radius:12px; border:1px solid var(--line); background:linear-gradient(160deg,#1c1c20,#101012)}
+.mcastimg img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .3s ease}
+.mcastimg img.ok{opacity:1}
+.mcastimg .mfb span{font-size:1.6rem}
+.mcastname{display:block; margin-top:7px; font-size:.8rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.mcastchar{display:block; font-size:.72rem; color:var(--faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.mcomp{font-size:.9rem; color:var(--muted); line-height:1.7}
+.msrc{margin-top:26px; font-size:.78rem; color:var(--faint)}
+.msrc a{color:var(--muted)}
+.msrc a:hover{color:var(--text)}
+
+/* TMDB attribution (required by TMDB) */
+.tmdb-attr{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 12px;
+  margin-top:44px; padding:18px 0; border-top:1px solid var(--line);
+  font-size:.78rem; color:var(--faint); text-align:center;
+}
+.tmdb-attr img{height:22px; width:auto; border-radius:4px; opacity:.85; transition:opacity var(--t)}
+.tmdb-attr img:hover{opacity:1}
+
+/* ---------------- movies responsive ---------------- */
+@media (max-width:760px){
+  .mwrap{padding:0 14px 50px}
+  .mhero{height:auto; min-height:0}
+  .mhero-info{position:relative; inset:auto; padding:110px 18px 20px; max-width:none}
+  .mhero-ov{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+  :root{--mposter-w:132px}
+  .mgrid{gap:18px 10px}
+  .mdhead{flex-direction:column; gap:14px}
+  .mdposter{width:120px; margin:-72px auto 0}
+  .mdinfo{padding-top:0; text-align:center}
+  .mchips-sm{justify-content:center}
+  .mdetail-actions, .mdetail{justify-content:center}
+  .mdetail{text-align:center}
+  .mtrailer{max-width:none}
+  .mcast{justify-content:flex-start}
+}
+@media (hover:none){
+  .mfav{opacity:1}
+  .mcard:hover{transform:none}
+}
+
 /* ---------------- responsive ---------------- */
 @media (max-width:760px){
   #topbar{flex-wrap:wrap; padding:0 12px; gap:0 12px}

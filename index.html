@@ -137,7 +137,7 @@
         <a class="tile" href="#movies">
           <span class="tile-ico"><svg class="ico" aria-hidden="true"><use href="#i-film"/></svg></span>
           <span class="tile-title">Movies</span>
-          <span class="tile-desc">Stream films and shows through the built-in proxy.</span>
+          <span class="tile-desc">Discover movies with TMDB &mdash; trending, search and your watchlist.</span>
           <svg class="ico tile-go" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
         </a>
         <a class="tile" href="#music">
@@ -227,12 +227,125 @@
     <iframe id="aiFrame" title="AI assistant" allow="clipboard-write; microphone; fullscreen"></iframe>
   </section>
 
+  <!-- ============ MOVIES (TMDB discovery) ============ -->
   <section id="view-movies" class="view">
-    <div class="ptwrap">
-      <div class="ptmount" id="ptMount-movies"></div>
-      <div class="fload" id="ptLoad-movies" data-pt="movies"><div class="spin"></div><div>Loading Movies&hellip;</div></div>
+    <div class="mwrap">
+
+      <!-- shown when no TMDB API key is configured -->
+      <div id="mSetup" hidden>
+        <h2>Movies needs a TMDB API key</h2>
+        <p>Movies are powered by <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>, a free movie database.</p>
+        <ol>
+          <li>Create a free TMDB account and grab your <b>v3 API key</b> from <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">TMDB settings &rarr; API</a>.</li>
+          <li>Open <code>movies.js</code> in this folder and paste it on the line:<br><code>const API_KEY = "YOUR_TMDB_V3_API_KEY";</code></li>
+          <li>Reload the page &mdash; that's it.</li>
+        </ol>
+        <p class="dim">On a static site like this the key is publicly visible in <code>movies.js</code>. That is expected and allowed by TMDB for browser apps &mdash; but never put your private <em>API Read Access Token</em> (the long bearer token) in any frontend file.</p>
+        <button type="button" class="btn btn-primary" id="mSetupRetry">I've added my key &mdash; reload</button>
+      </div>
+
+      <!-- network failure / retry -->
+      <div id="mFatal" class="mstate" hidden></div>
+
+      <!-- cinematic hero (trending #1) -->
+      <div id="mHero" class="mhero" hidden></div>
+
+      <!-- toolbar: search + watchlist filter -->
+      <div class="toolbar mtoolbar" id="mToolbar">
+        <div class="searchwrap">
+          <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="mSearch" type="search" placeholder="Search movies" aria-label="Search movies" autocomplete="off" spellcheck="false">
+        </div>
+        <button type="button" id="mWatchBtn" class="tool" title="Show watchlist only" aria-pressed="false">
+          <svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg> <b id="mWatchCount">0</b>
+        </button>
+      </div>
+
+      <!-- search results -->
+      <div id="mSearchArea" hidden>
+        <div class="sechead">
+          <h2>Results for <span id="mSearchQ"></span></h2>
+          <span id="mSearchCount" class="count"></span>
+        </div>
+        <div id="mSearchGrid" class="mgrid"></div>
+        <p id="mSearchEmpty" class="mstate" hidden></p>
+        <div class="mloadrow"><button type="button" id="mSearchMore" class="btn" hidden>Load more</button></div>
+      </div>
+
+      <!-- browse: watchlist + TMDB catalogs -->
+      <div id="mBrowse">
+        <section id="mWatchSec" class="block" hidden>
+          <div class="sechead">
+            <h2>My Watchlist</h2>
+            <button id="mWatchClear" type="button" class="linkbtn">Clear</button>
+          </div>
+          <div id="mWatchRow" class="row"></div>
+          <p id="mWatchEmpty" class="mstate" hidden></p>
+        </section>
+
+        <section id="mSec-trending" class="block" data-mrow="trending">
+          <div class="sechead"><h2>Trending this week</h2></div>
+          <div class="row" data-mbody="trending"></div>
+        </section>
+
+        <section id="mSec-popular" class="block" data-mrow="popular">
+          <div class="sechead"><h2>Popular</h2></div>
+          <div class="row" data-mbody="popular"></div>
+        </section>
+
+        <section id="mSec-top" class="block" data-mrow="top">
+          <div class="sechead"><h2>Top rated</h2></div>
+          <div class="row" data-mbody="top"></div>
+        </section>
+
+        <section id="mSec-now" class="block" data-mrow="now">
+          <div class="sechead"><h2>Now playing</h2></div>
+          <div class="row" data-mbody="now"></div>
+        </section>
+
+        <section id="mSec-upcoming" class="block" data-mrow="upcoming">
+          <div class="sechead"><h2>Upcoming</h2></div>
+          <div class="row" data-mbody="upcoming"></div>
+        </section>
+
+        <section id="mSec-recs" class="block" data-mrow="recs">
+          <div class="sechead"><h2>Recommended for you</h2></div>
+          <div class="row" data-mbody="recs"></div>
+        </section>
+
+        <section id="mGenreSec" class="block">
+          <div class="sechead"><h2>Browse by genre</h2></div>
+          <div id="mGenreChips" class="chips mchips" aria-label="Browse movies by genre"></div>
+          <div id="mGenreArea" hidden>
+            <div class="sechead">
+              <h2 id="mGenreTitle"></h2>
+              <span id="mGenreCount" class="count"></span>
+            </div>
+            <div id="mGenreGrid" class="mgrid"></div>
+            <p id="mGenreEmpty" class="mstate" hidden></p>
+            <div class="mloadrow"><button type="button" id="mGenreMore" class="btn" hidden>Load more</button></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- TMDB attribution (required) -->
+      <div class="tmdb-attr">
+        <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">
+          <img src="tmdb-logo.svg" alt="TMDB" loading="lazy">
+        </a>
+        <span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+      </div>
     </div>
   </section>
+
+  <!-- ============ MOVIE DETAILS MODAL ============ -->
+  <div id="mModal" role="dialog" aria-modal="true" aria-label="Movie details">
+    <div class="mback" id="mModalBack"></div>
+    <div class="mpanel-lg">
+      <button type="button" id="mModalClose" title="Close (Esc)" aria-label="Close movie details"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+      <div id="mMContent"></div>
+    </div>
+  </div>
 
   <section id="view-music" class="view">
     <div class="ptwrap">
@@ -340,7 +453,8 @@
         <p class="about">
           <b>Julmust</b> &mdash; <span id="sCount"></span> games, movies, music, AI and an unblocked browser in one place.<br>
           Shortcuts: <kbd>/</kbd> search &middot; <kbd>Esc</kbd> close &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> switch game &middot; <kbd>F</kbd> fullscreen.<br>
-          Proxy powered by <a href="https://github.com/MercuryWorkshop/scramjet" target="_blank" rel="noopener">Scramjet</a> (Mercury Workshop).
+          Proxy powered by <a href="https://github.com/MercuryWorkshop/scramjet" target="_blank" rel="noopener">Scramjet</a> (Mercury Workshop).<br>
+          Movie data from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>. This product uses the TMDB API but is not endorsed or certified by TMDB.
         </p>
       </section>
     </div>
@@ -350,6 +464,7 @@
 <footer>
   <div><b>Julmust</b> &middot; <span id="footCount"></span> games &middot; movies &middot; music &middot; AI</div>
   <div>Proxy powered by <a href="https://github.com/MercuryWorkshop/scramjet" target="_blank" rel="noopener">Scramjet</a> (Mercury Workshop) &middot; covers &amp; games &copy; their respective owners</div>
+  <div>Movie data from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a> &middot; This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
 </footer>
 
 <button type="button" id="toTop" title="Back to top" aria-label="Back to top"><svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
@@ -357,5 +472,6 @@
 
 <script src="games.js"></script>
 <script src="app.js"></script>
+<script src="movies.js"></script>
 </body>
 </html>

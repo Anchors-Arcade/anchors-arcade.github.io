@@ -191,9 +191,9 @@ $("clearRecent").addEventListener("click",()=>{ recent=[]; store.set("gn_recent"
 
 /* ============================== VIEWS / ROUTING ============================== */
 /* proxied iframe tabs: one row per tab (view id "view-"+key, nav button data-nav=key, route #key,
-   containers #ptMount-key / #ptLoad-key). Frames are created lazily through the Scramjet proxy. */
+   containers #ptMount-key / #ptLoad-key). Frames are created lazily through the Scramjet proxy.
+   (Movies used to be a proxied tab too — it is now a native TMDB view, see movies.js.) */
 const PROXY_TABS={
-  movies:{url:"https://flixer.gd",label:"Movies"},
   music:{url:"https://soundcloud.com",label:"Music"}
 };
 const isProxyTab=k=>Object.prototype.hasOwnProperty.call(PROXY_TABS,k);
@@ -205,6 +205,7 @@ function showView(v){
   for(const el of document.querySelectorAll(".view")) el.classList.toggle("active", el.id==="view-"+v);
   for(const b of document.querySelectorAll(".navlink")) b.classList.toggle("active", b.dataset.nav===v);
   if(v==="library") renderGrid();
+  if(v==="movies"&&window.Movies) window.Movies.show();
   if(v==="ai"){
     const af=$("aiFrame");
     if(!af.getAttribute("src")) af.src="jarvis.html"; /* lazy-load Jarvis on first visit */
@@ -213,7 +214,7 @@ function showView(v){
   if(isFrameView(v)) sizeFrameView();
 }
 
-/* keep every iframe view (AI, Movies, Music) exactly as tall as the space under the (possibly wrapping) header */
+/* keep every iframe view (AI, Music) exactly as tall as the space under the (possibly wrapping) header */
 function sizeFrameView(){ document.documentElement.style.setProperty("--topH", $("topbar").offsetHeight+"px"); }
 window.addEventListener("resize",()=>{ if(document.body.dataset.fv) sizeFrameView(); });
 if(typeof ResizeObserver==="function") new ResizeObserver(()=>{ if(document.body.dataset.fv) sizeFrameView(); }).observe($("topbar"));
@@ -222,9 +223,10 @@ if(typeof ResizeObserver==="function") new ResizeObserver(()=>{ if(document.body
 function route(initial){
   const m=location.hash.match(/^#p=(.+)$/);
   const f=m?decodeURIComponent(m[1]):null;
+  const v0=location.hash.slice(1);
   let v;
   if(f||location.hash==="#library") v="library";
-  else if(isFrameView(location.hash.slice(1))) v=location.hash.slice(1);
+  else if(v0==="ai"||v0==="movies"||isProxyTab(v0)) v=v0;
   else if(initial) v=settings.landing==="library" ? "library" : "home";
   else v="home";
   showView(v);
@@ -241,7 +243,7 @@ function goHome(){
 
 document.querySelectorAll(".navlink").forEach(b=>b.addEventListener("click",()=>{
   if(b.dataset.nav==="library") location.hash="#library";
-  else if(isFrameView(b.dataset.nav)) location.hash="#"+b.dataset.nav;
+  else if(b.dataset.nav!=="home") location.hash="#"+b.dataset.nav;
   else goHome();
 }));
 $("brandHome").addEventListener("click",goHome);
@@ -476,7 +478,7 @@ function hideBrowse(){
   document.body.style.overflow="";
 }
 
-/* ---- proxied tabs (Movies, Music): lazy, created once, kept alive while hidden ---- */
+/* ---- proxied tabs (Music): lazy, created once, kept alive while hidden ---- */
 const PROXY_ALLOW="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write";
 const PT_BOOT_MS=75000, PT_LOAD_MS=25000;
 const ptState={};
@@ -743,6 +745,7 @@ addEventListener("scroll",()=>toTop.classList.toggle("show",scrollY>700),{passiv
 toTop.addEventListener("click",()=>scrollTo({top:0,behavior:"smooth"}));
 
 document.addEventListener("keydown",e=>{
+  if($("mModal")&&$("mModal").classList.contains("active")) return; /* movie details modal handles its own keys */
   if(settingsModal.classList.contains("active")){
     if(e.key==="Escape") closeSettings();
     return;
